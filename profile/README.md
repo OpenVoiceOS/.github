@@ -30,7 +30,7 @@ OpenVoiceOS is the perfect choice for anyone who wants a personal assistant and 
 Whether you prefer voice commands or a more traditional touch interface, OpenVoiceOS has you covered, and the option to run the platform fully offline gives you complete control over your data and ensures that your information is never shared with third parties. With its powerful and flexible features, OpenVoiceOS is the ideal choice for anyone who wants a voice-controlled virtual assistant and smart speaker that offers complete control and customization. Whether you’re a software developer, data scientist, or just someone with a passion for technology, be sure to check out OpenVoiceOS today!
 
 ## Getting Involved
-Check out our [documentation](https://openvoiceos.github.io/community-docs/) to learn more about OpenVoiceOS [here] (https://openvoiceos.github.io/community-docs/)
+Check out our [documentation](https://openvoiceos.github.io/community-docs/) to learn more about OpenVoiceOS [here](https://openvoiceos.github.io/community-docs/)
 
 You can have a personal chat with any of the team members or other OpenVoiceOS users at our active Matrix channels or leave a message at our discussionboard on github.;
 * [Discussion Board](https://github.com/OpenVoiceOS/OpenVoiceOS/discussions)
