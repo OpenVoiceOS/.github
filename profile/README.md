@@ -23,7 +23,7 @@ OpenVoiceOS is the perfect choice for anyone who wants a personal assistant and 
 
 *Robust & Modular:* OpenVoiceOS leverages the power of skills and plugins to create a robust and modular virtual assistant platform, offering unparalleled customization and extension capabilities.
 
-*Fully Offline:* OpenVoiceOS can run without the use of any online services, so you don’t have to rely on anyone keeping their servers up.
+*Fully Offline:* OpenVoiceOS can run without the use of any online services, so you don’t have to rely on anyone keeping their servers up. The default speech-to-text (STT) engine currently requires an internet connection, though some self-hosted, offline options are available. 
 
 *Privacy and security:* OpenVoiceOS is designed with privacy and security in mind. Whether you’re concerned about the security of your personal information or the privacy of your voice commands, OpenVoiceOS provides peace of mind.
 
