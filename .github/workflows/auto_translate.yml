@@ -5,9 +5,13 @@ on:
       branch:
         type: string
         default: ${{ github.ref }}
+      python_version:
+        type: string
+        default: "3.8"
       locale_folder:
         type: string
         default: "locale"
+      
 
 jobs:
   autotranslate:
@@ -17,19 +21,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
           path: action/package/
       - name: Checkout Scripts Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
           path: action/github/
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: ${{ inputs.python_version }}
       - name: Install Translate Tools
         run: |
           python -m pip install ovos-translate-plugin-deepl ovos-utils

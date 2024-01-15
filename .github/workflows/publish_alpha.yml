@@ -10,6 +10,9 @@ on:
       version_file:
         type: string
         default: version.py
+      python_version:
+        type: string
+        default: "3.8"
       locale_folder:
         type: string
         default: "locale"
@@ -22,12 +25,12 @@ jobs:
       LOCALE_FOLDER: ${{ github.workspace }}/action/package/${{ inputs.locale_folder }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
           path: action/package/
       - name: Checkout Scripts Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
           path: action/github/
@@ -42,9 +45,9 @@ jobs:
               - '${{ inputs.locale_folder }}/../vocab/en-us/**'
       - name: Setup Python
         if: steps.filter.outputs.locales == 'true'
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: ${{ inputs.python_version }}
       - name: Auto Translate
         if: steps.filter.outputs.locales == 'true'
         run: |
@@ -63,19 +66,19 @@ jobs:
       VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.branch }}
           path: action/package/
       - name: Checkout Scripts Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
           path: action/github/
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: ${{ inputs.python_version }}
       - name: Increment Version
         id: version
         run: |
