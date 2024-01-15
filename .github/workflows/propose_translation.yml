@@ -43,7 +43,7 @@ jobs:
         python-version: ${{ inputs.python_version }}
     - name: Install Translate Tools
       run: |
-        python -m pip install ovos-translate-plugin-deepl ovos-utils
+        python -m pip install -r action/github/requirements/translation.txt
     - name: Run Translate Script
       run: |
         python action/github/scripts/translate.py
