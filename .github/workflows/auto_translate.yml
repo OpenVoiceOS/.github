@@ -3,12 +3,15 @@ on:
   workflow_call:
     inputs:
       branch:
+        description: 'The branch to checkout and run the action in'
         type: string
         default: ${{ github.ref }}
       python_version:
+        description: 'The python version to use'
         type: string
         default: "3.8"
       locale_folder:
+        description: 'The base folder to look for localization files'
         type: string
         default: "locale"
       

@@ -3,18 +3,23 @@ on:
   workflow_call:
     inputs:
       branch:
+        description: 'The branch to checkout and run the action in'
         type: string
         default: ${{ github.ref_name }}
       python_version:
+        description: 'The python version to use'
         type: string
         default: "3.8"
       language:
+        description: 'The language to translate to (ISO 3166-1 alpha-2 code; form "xx-xx")'
         type: string
         default: ""
       locale_folder:
+        description: 'The base folder to look for localization files'
         type: string
         default: "locale"
-      reviewer:
+      reviewers:
+        description: 'A comma or newline-separated string of reviewers'
         type: string
         default: "emphasize"
       
@@ -58,4 +63,4 @@ jobs:
         body: Translations for review
         labels: translation
         branch: staging/translation_${{ inputs.language }}
-        reviewers: ${{ inputs.reviewer }}
+        reviewers: ${{ inputs.reviewers }}
