@@ -20,6 +20,9 @@ on:
         description: 'The base folder to look for localization files'
         type: string
         default: "locale"
+      changelog_file:
+        type: string
+        default: "CHANGELOG.md"
 
 jobs:
   autotranslate:
@@ -87,17 +90,18 @@ jobs:
         id: version
         run: |
           python action/github/scripts/bump_alpha.py
-          echo "::set-output name=version::$(python action/package/setup.py --version)"
+          VERSION=$(python action/package/setup.py --version)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: "Generate release changelog"
         id: changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          output: action/package/
+          output: action/package/${{ inputs.changelog_file }}
       - name: Push Version Change
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Increment Version to ${{ steps.version.outputs.version }}
+          commit_message: Increment Version to ${{ env.version }}
           repository: action/package/
       - name: Change working directory to release
         run: cd ${{ github.workspace }}/action/package/
@@ -106,11 +110,11 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: V${{ steps.version.outputs.version }}
+          tag: V${{ env.version }}
           name: Release ${{ steps.version.outputs.version }}
           body: |
             Changes in this Release
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ env.changelog }}
           commit: ${{ inputs.branch }}
           prerelease: true
       - name: Install Build Tools

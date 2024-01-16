@@ -1,0 +1,74 @@
+name: Propose Stable Release
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        default: "dev"
+      python_version:
+        description: 'The python version to use'
+        type: string
+        default: "3.8"
+      version_file:
+        description: 'The file location to read the version from'
+        type: string
+        default: version.py
+      release_type:
+        type: string
+      changelog_file:
+        type: string
+        default: "CHANGELOG.md"
+      
+
+jobs:
+  bump_version:
+    runs-on: "ubuntu-latest"
+    env:
+      VERSION_FILE: ${{ inputs.version_file }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          path: action/package/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          path: action/github/
+          repository: OpenVoiceOS/.github
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Increment Version
+        id: version
+        run: |
+          python action/github/scripts/bump_"${{ inputs.release_type }}".py
+          VERSION=$(python action/package/setup.py --version)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Push Version Change
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Increment Version to ${{ env.version }}
+          repository: action/package/
+      - name: Check Latest Release
+        id: latest_release
+        continue-on-error: true
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: ${{ github.repository }}
+          excludes: draft,prerelease
+      - name: Generate Changelog
+        id: changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          output: action/package/${{ inputs.changelog_file }}
+          futureRelease: ${{ env.VERSION }}
+          sinceTag: ${{ steps.latest_release.outputs.release }}
+      - name: Push Changelog
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update Changelog
+          repository: action/package/
+      
