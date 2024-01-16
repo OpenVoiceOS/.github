@@ -1,0 +1,67 @@
+name: Skill Installation Tests
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: 'Runner to use'
+        type: string
+        default: "ubuntu-latest"
+      branch:
+        description: 'Branch to use'
+        type: string
+        default: ${{ github.ref }}
+      python_matrix:
+        description: 'Python versions to test against'
+        type: string
+        default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+      system_deps:
+        description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
+        required: false
+        type: string
+      pip_packages:
+        description: 'Python packages (whitespace delimited) to install instead of pip_tests.txt'
+        required: false
+        type: string
+      test_osm:
+        description: 'Whether to test OSM installation'
+        type: boolean
+        default: true
+jobs:
+  test_osm_install:
+    runs-on: ${{inputs.runner}}
+    timeout-minutes: 5
+    if: ${{ inputs.test_osm }}
+    strategy:
+      matrix:
+        python-version: ${{ fromJson(inputs.python_matrix) }}
+    steps:
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          path: action/github/
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          if [ -z "${{inputs.system_deps}}" ]; then
+            xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+          else
+            sudo apt install -y ${{inputs.system_deps}}
+          fi
+      - name: Install Python Requirements
+        run: |
+          pip install --upgrade pip
+          if [ -z "${{inputs.pip_packages}}" ]; then
+            pip install -r ${{ github.workspace }}/action/skill/requirements/pip_tests.txt
+          else
+            pip install ${{inputs.pip_packages}}
+          fi
+      - name: Test OSM Installation
+        run: |
+          export TEST_REPO=${{ github.repository }}
+          export TEST_BRANCH=${{inputs.branch}}
+          pytest ${{ github.workspace }}/action/github/test/test_skill_osm_install.py

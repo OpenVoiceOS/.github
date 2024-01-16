@@ -1,0 +1,68 @@
+name: Skill Ressource Tests
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: 'The runner to use'
+        type: string
+        default: "ubuntu-latest"
+      system_deps:
+        description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
+        required: false
+        type: string
+      python_version:
+        description: 'The python version to use'
+        type: string
+        default: "3.8"
+      pip_packages:
+        description: 'Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
+        required: false
+        type: string
+      resource_testfile:
+        type: string
+        default: test/unittests/test_resources.yaml
+      skill_entrypoint:
+        type: string
+        default: action/skill/
+jobs:
+  test_resources:
+    runs-on: ${{inputs.runner}}
+    timeout-minutes: 5
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          path: action/skill/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          path: action/github/
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{inputs.python_version}}
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          if [ -z "${{inputs.system_deps}}" ]; then
+            xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+          else
+            sudo apt install -y ${{inputs.system_deps}}
+          fi
+      - name: Install Python Skill and Requirements
+        run: |
+          pip install --upgrade pip
+          pip install wheel "cython<3.0.0"  # TODO: cython patching https://github.com/yaml/pyyaml/issues/724
+          if [ -z "${{inputs.pip_packages}}" ]; then
+            pip install -r ${{ github.workspace }}/action/skill/requirements/pip_skill_tests.txt
+          else
+            pip install ${{inputs.pip_packages}}
+          fi
+          cd ${{ github.workspace }}/action/skill/
+          pip install .          
+      - name: Test Skill Resources
+        run: |
+          export RESOURCE_TEST_FILE="action/skill/${{inputs.resource_testfile}}"
+          export TEST_SKILL_ENTRYPOINT="${{inputs.skill_entrypoint}}"
+          pytest action/github/test/test_skill_resources.py
