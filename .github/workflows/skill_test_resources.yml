@@ -6,6 +6,10 @@ on:
         description: 'The runner to use'
         type: string
         default: "ubuntu-latest"
+      branch:
+        description: 'The branch to use'
+        type: string
+        default: ${{ github.ref }}
       system_deps:
         description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
         required: false
@@ -21,17 +25,18 @@ on:
       resource_testfile:
         type: string
         default: test/unittests/test_resources.yaml
-      skill_entrypoint:
-        type: string
-        default: action/skill/
+
 jobs:
   test_resources:
+    env:
+      TEST_SKILL_ENTRYPOINT: "action/skill/"
     runs-on: ${{inputs.runner}}
     timeout-minutes: 5
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: ${{inputs.branch}}
           path: action/skill/
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
@@ -64,5 +69,4 @@ jobs:
       - name: Test Skill Resources
         run: |
           export RESOURCE_TEST_FILE="action/skill/${{inputs.resource_testfile}}"
-          export TEST_SKILL_ENTRYPOINT="${{inputs.skill_entrypoint}}"
           pytest action/github/test/test_skill_resources.py

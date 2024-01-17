@@ -1,0 +1,4 @@
+pytest
+pytest-cov
+mock
+ovos-core[skills]>=0.0.7

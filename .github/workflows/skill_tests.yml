@@ -5,6 +5,10 @@ on:
       runner:
         type: string
         default: "ubuntu-latest"
+      branch:
+        description: 'Branch to use'
+        type: string
+        default: ${{ github.ref }}
       system_deps:
         description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
         required: false
@@ -33,6 +37,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          ref: ${{inputs.branch}}
           path: action/skill/
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
