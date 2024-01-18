@@ -1,8 +1,7 @@
 # We need your help
-With MycroftAI reduced to a skeleton crew, and the transfer of most development operations to Neon, we've decided to become a nonprofit association under Dutch law. OpenVoiceOS will be registered as OpenVoiceOS V.z.w. (Dutch: "Vereninging zonder winstoogmerk", a nonprofit association, as distinguished from a foundation.) The association will support the OVOS community in legal and financial matters by securing donations of cash, hardware, and other relevant aid. These donations will be used to facilitate software development, promotion, and support.
+With MycroftAI reduced to a skeleton crew, and the transfer of most development operations to Neon, we've decided to become a nonprofit foundation under Dutch law. OpenVoiceOS will be registered as **the OVOS Foundation** (Dutch: "Stichting OVOS", a nonprofit foundation.) The Foundation will support the OVOS community in legal and financial matters by securing donations of cash, hardware, and other relevant aid. These donations will be used to facilitate software development, promotion, and support.
 
-To establish the association and equip it with a positive balance for ongoing expenses, we have determined that we need to raise €3033. We’re deeply grateful for any support. You can chip in at our GoFundMe campaign;
-
+To establish the Foundation and equip it with a positive balance for ongoing expenses, we have been running a GoFundMe campaign:  
 https://www.gofundme.com/f/openvoiceos
 
 Sharing is caring and is very much appreciated. Please help us spread the word.
