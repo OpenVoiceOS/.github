@@ -1,47 +1,34 @@
-# NEON AI (TM) SOFTWARE, Software Development Kit & Application Framework
-# All trademark and other rights reserved by their respective owners
-# Copyright 2008-2022 Neongecko.com Inc.
-# Contributors: Daniel McKnight, Guy Daniels, Elon Gasper, Richard Leeds,
-# Regina Bloomstine, Casimiro Ferreira, Andrii Pernatii, Kirill Hrymailo
-# BSD-3 License
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# 1. Redistributions of source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-# 3. Neither the name of the copyright holder nor the names of its
-#    contributors may be used to endorse or promote products derived from this
-#    software without specific prior written permission.
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-# CONTRIBUTORS  BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-# OR PROFITS;  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 import logging
 from os import getenv
+from os.path import isdir
+from typing import Optional
 
 import importlib
 import unittest
 import yaml
 from mock import Mock, patch
 
-from ovos_utils.log import LOG
-from mycroft_bus_client import Message
-from ovos_config.config import update_mycroft_config
+from ovos_core.intent_services import PadatiousService, PadatiousMatcher
+from ovos_bus_client import Message
+from ovos_bus_client.session import Session, SessionManager
+from ovos_config.config import update_mycroft_config, Configuration
 from ovos_utils.messagebus import FakeBus
-from mycroft.skills.intent_services.padatious_service import PadatiousMatcher
+from ovos_utils.log import LOG
+from ovos_plugin_manager.skills import find_skill_plugins
+from ovos_workshop.skill_launcher import SkillLoader
+from ovos_workshop.skills.base import BaseSkill
 
 
-regex_only = getenv("INTENT_ENGINE") == "padacioso"
+PIPELINE = ["adapt_high", "adapt_medium", "adapt_low"] 
+use_padacioso = getenv("INTENT_ENGINE") == "padacioso"
+if use_padacioso:
+    PIPELINE.extend(["padacioso_high",
+                     "padacioso_medium",
+                     "padacioso_low"])
+else:
+    PIPELINE.extend(["padatious_high",
+                     "padatious_medium",
+                     "padatious_low"])
 LOG.level = logging.DEBUG
 
 
@@ -66,15 +53,30 @@ class MockPadatiousMatcher(PadatiousMatcher):
         PadatiousMatcher.match_low(self, utterances, lang=lang)
 
 
-def get_skill_class():
-    from ovos_plugin_manager.skills import find_skill_plugins
+def get_skill_object(skill_entrypoint: str, bus: FakeBus,
+                     skill_id: str, config_patch: Optional[dict] = None) -> BaseSkill:
+    """
+    Get an initialized skill object by entrypoint with the requested skill_id.
+    @param skill_entrypoint: Skill plugin entrypoint or directory path
+    @param bus: FakeBus instance to bind to skill for testing
+    @param skill_id: skill_id to initialize skill with
+    @param config_patch: Configuration update to apply
+    @returns: Initialized skill object
+    """
+    if config_patch:
+        user_config = update_mycroft_config(config_patch)
+        if user_config not in Configuration.xdg_configs:
+            Configuration.xdg_configs.append(user_config)
+    if isdir(skill_entrypoint):
+        LOG.info(f"Loading local skill: {skill_entrypoint}")
+        loader = SkillLoader(bus, skill_entrypoint, skill_id)
+        if loader.load():
+            return loader.instance
     plugins = find_skill_plugins()
-    plugin_id = getenv("TEST_SKILL_ID")
-    if plugin_id:
-        skill = plugins.get(plugin_id)
-    else:
-        assert len(plugins.values()) == 1
-        skill = list(plugins.values())[0]
+    if skill_entrypoint not in plugins:
+        raise ValueError(f"Requested skill not found: {skill_entrypoint}")
+    plugin = plugins[skill_entrypoint]
+    skill = plugin(bus=bus, skill_id=skill_id)
     return skill
 
 
@@ -84,29 +86,28 @@ class TestSkillIntentMatching(unittest.TestCase):
         valid_intents = yaml.safe_load(f)
     negative_intents = valid_intents.pop('unmatched intents', dict())
     common_query = valid_intents.pop("common query", dict())
+    skill_entrypoint = getenv("TEST_SKILL_ENTRYPOINT_NAME")
 
     # Ensure all tested languages are loaded
     import ovos_config
-    update_mycroft_config({"secondary_langs": list(valid_intents.keys()),
-                            "padatious": {
-                                "regex_only": regex_only,
-                                # TODO: below config patching ovos-core default config
-                                #       https://github.com/OpenVoiceOS/ovos-config/pull/78/files#r1439966369
-                                "intent_cache": "~/.local/share/mycroft/intent_cache",
-                                "train_delay": 4,
-                                "single_thread": False}})
+    update_mycroft_config({"secondary_langs": list(valid_intents.keys())})
     importlib.reload(ovos_config.config)
+
+    # make the default session use the test pipeline
+    session = Session("default", pipeline=PIPELINE)
+    SessionManager.default_session = session
+    SessionManager.sessions = {"default": session}
+
     # Start the IntentService
     bus = FakeBus()
-    from mycroft.skills.intent_service import IntentService
+    from ovos_core.intent_services import IntentService
     intent_service = IntentService(bus)
-    assert intent_service.padatious_service.is_regex_only == regex_only
 
     # Create the skill to test
-    # TODO: Refactor to use ovos-workshop
-    skill_class = get_skill_class()
     test_skill_id = 'test_skill.test'
-    skill = skill_class(skill_id=test_skill_id, bus=bus)
+    skill = get_skill_object(skill_entrypoint=skill_entrypoint,
+                             bus=bus,
+                             skill_id=test_skill_id)
     assert skill.config_core["secondary_langs"] == list(valid_intents.keys())
 
     last_message = None
@@ -185,7 +186,7 @@ class TestSkillIntentMatching(unittest.TestCase):
                                                 value, utt)
                     intent_handler.reset_mock()
 
-    @patch("mycroft.skills.intent_service.PadatiousMatcher",
+    @patch("ovos_core.intent_services.padacioso_service.PadaciosoService",
             new=MockPadatiousMatcher)
     def test_negative_intents(self):
         test_config = self.negative_intents.pop('config', None)
@@ -194,6 +195,7 @@ class TestSkillIntentMatching(unittest.TestCase):
                                                                 True)
             MockPadatiousMatcher.include_low = test_config.get('include_low',
                                                                 False)
+
         intent_failure = Mock()
         self.intent_service.send_complete_intent_failure = intent_failure
 

@@ -24,20 +24,27 @@ on:
         description: 'Optional system dependencies to install instead of requirements.txt'
         required: false
         type: string
-      intent_file:
+      skill_id:
+        description: 'Skill ID to test'
+        required: true
         type: string
-        default: test/test_intents.yaml
+      intent_file:
+        description: 'Intent file to test'	
+        type: string
+        default: test/unittests/intent_tests.yaml
       test_padatious:
+        description: 'Whether to skip padatious tests'
         type: boolean
         default: False
       test_padacioso:
+        description: 'Whether to skip padacioso tests'
         type: boolean
         default: True
 
 jobs:
   test_intents_ovos:
     env:
-      TEST_SKILL_ENTRYPOINT: "action/skill/"
+      TEST_SKILL_ENTRYPOINT_NAME: ${{ inputs.skill_id }}
     runs-on: ${{inputs.runner}}
     timeout-minutes: ${{inputs.timeout}}
     strategy:
@@ -76,6 +83,9 @@ jobs:
           fi
           cd ${{ github.workspace }}/action/skill
           pip install .
+      # when skill names are normalized
+      # - name: Set TEST_SKILL_ENTRYPOINT_NAME
+      #   run: echo "TEST_SKILL_ENTRYPOINT_NAME=$(basename ${{ github.repository }} | sed 's/-/_/g').$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
       - name: Test Skill Intents Padacioso
         if: ${{ inputs.test_padacioso }}
         run: |

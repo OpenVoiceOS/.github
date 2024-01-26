@@ -91,7 +91,7 @@ class TestSkillResources(unittest.TestCase):
 
     # Define skill and resource spec to use in tests
     resources = load_resource_tests(getenv("RESOURCE_TEST_FILE"))
-    skill_entrypoint = getenv("TEST_SKILL_ENTRYPOINT")
+    skill_entrypoint_name = getenv("TEST_SKILL_ENTRYPOINT_NAME")
 
     # Specify valid languages to test
     supported_languages = resources['languages']
@@ -113,8 +113,9 @@ class TestSkillResources(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.bus.on("message", cls._on_message)
 
-        cls.skill = get_skill_object(skill_entrypoint=cls.skill_entrypoint,
-                                     bus=cls.bus, skill_id=cls.test_skill_id,
+        cls.skill = get_skill_object(skill_entrypoint=cls.skill_entrypoint_name,
+                                     bus=cls.bus,
+                                     skill_id=cls.test_skill_id,
                                      config_patch=cls.core_config_patch)
 
         cls.adapt_intents = {f'{cls.test_skill_id}:{intent}'

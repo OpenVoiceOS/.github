@@ -22,19 +22,27 @@ on:
         description: 'Python packages (whitespace delimited) to install instead of pip_tests.txt'
         required: false
         type: string
-      test_osm:
-        description: 'Whether to test OSM installation'
-        type: boolean
-        default: true
+      skill_id:
+        description: 'Skill ID to test'
+        required: true
+        type: string
+      skill_location:
+        description: 'Relative path to skill'
+        type: string
+        default: ''
+      
 jobs:
-  test_osm_install:
+  test_skill_install:
     runs-on: ${{inputs.runner}}
     timeout-minutes: 5
-    if: ${{ inputs.test_osm }}
     strategy:
       matrix:
         python-version: ${{ fromJson(inputs.python_matrix) }}
     steps:
+      - name: Checkout Skill Repo
+        uses: actions/checkout@v4
+        with:
+          path: action/skill/
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
         with:
@@ -56,12 +64,12 @@ jobs:
         run: |
           pip install --upgrade pip
           if [ -z "${{inputs.pip_packages}}" ]; then
-            pip install -r ${{ github.workspace }}/action/skill/requirements/pip_tests.txt
+            pip install -r ${{ github.workspace }}/action/github/requirements/pip_tests.txt
           else
             pip install ${{inputs.pip_packages}}
           fi
-      - name: Test OSM Installation
+      - name: Test Skill Installation
         run: |
-          export TEST_REPO=${{ github.repository }}
-          export TEST_BRANCH=${{inputs.branch}}
-          pytest ${{ github.workspace }}/action/github/test/test_skill_osm_install.py
+          export TEST_SKILL_PATH=${{ github.workspace }}/action/skill/${{inputs.skill_location}}
+          export TEST_SKILL_ENTRYPOINT_NAME=${{ inputs.skill_id }}
+          pytest ${{ github.workspace }}/action/github/test/test_skill_install.py

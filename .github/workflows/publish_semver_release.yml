@@ -16,12 +16,14 @@ on:
 
 jobs:
   build_and_publish:
+    env:
+      SOURCE_BRANCH: ${{ inputs.release_type == 'build' && 'testing' || 'stable' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: master
+          ref: ${{ env.SOURCE_BRANCH }}
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: Setup Python
         uses: actions/setup-python@v5
