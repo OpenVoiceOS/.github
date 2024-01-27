@@ -76,7 +76,7 @@ jobs:
         id: license_check_report
         uses: pilosus/action-pip-license-checker@v2
         with:
-          requirements: 'action/package/requirements-all.txt'
+          requirements: 'requirements-all.txt'
           fail: 'Copyleft,Other,Error'
           fails-only: true
           exclude: ${{ inputs.packages-exclude }}
