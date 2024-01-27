@@ -62,7 +62,7 @@ jobs:
           else
             sudo apt install -y ${{inputs.system_deps}}
           fi
-      - name: Install Python Requirements
+      - name: Install Python Skill and Requirements
         run: |
           pip install --upgrade pip
           if [ -z "${{inputs.pip_packages}}" ]; then
@@ -70,6 +70,8 @@ jobs:
           else
             pip install ${{inputs.pip_packages}}
           fi
+          cd ${{ github.workspace }}/action/skill
+          pip install .
       - name: Test Skill Installation
         run: |
           export TEST_SKILL_PATH=${{ github.workspace }}/action/skill/${{inputs.skill_location}}
