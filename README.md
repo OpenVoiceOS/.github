@@ -253,7 +253,7 @@ jobs:
     # this job will only run if the PR has been merged
     if: github.event.pull_request.merged == true
     secrets: inherit
-    uses: openvoiceos/.github/.github/workflows/notify_pr_matrix.yml@feat/shared_actions1
+    uses: openvoiceos/.github/.github/workflows/notify_pr_matrix.yml@main
     with:
       pr_id: ${{ github.event.number }}
 ```

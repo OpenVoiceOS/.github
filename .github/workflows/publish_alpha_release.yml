@@ -8,6 +8,10 @@ on:
         description: 'The branch to checkout and run the action in'
         type: string
         default: ${{ github.ref }}
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
       version_file:
         description: 'The file location to read the version from'
         type: string
@@ -40,7 +44,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
-          ref: feat/shared_actions1
+          ref: ${{ inputs.action_branch }}
           path: action/github/
       - uses: dorny/paths-filter@v2
         id: filter
@@ -82,7 +86,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
-          ref: feat/shared_actions1
+          ref: ${{ inputs.action_branch }}
           path: action/github/
       - name: Setup Python
         uses: actions/setup-python@v5

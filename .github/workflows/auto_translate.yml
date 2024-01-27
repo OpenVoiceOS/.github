@@ -6,6 +6,10 @@ on:
         description: 'The branch to checkout and run the action in'
         type: string
         default: ${{ github.ref }}
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
       python_version:
         description: 'The python version to use'
         type: string
@@ -32,7 +36,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
-          ref: feat/shared_actions1
+          ref: ${{ inputs.action_branch }}
           path: action/github/
       - name: Setup Python
         uses: actions/setup-python@v4

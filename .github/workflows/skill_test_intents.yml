@@ -9,6 +9,10 @@ on:
         description: 'Branch to test'
         type: string
         default: ${{ github.ref }}
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
       timeout:
         type: number
         default: 15
@@ -60,7 +64,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: OpenVoiceOS/.github
-          ref: feat/shared_actions1
+          ref: ${{inputs.action_branch}}
           path: action/github/
       - name: Set up python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
