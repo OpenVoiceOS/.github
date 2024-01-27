@@ -38,6 +38,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: action/github/
+          ref: feat/shared_actions1
           repository: OpenVoiceOS/.github
       - name: Setup Python
         uses: actions/setup-python@v5
