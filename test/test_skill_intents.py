@@ -74,7 +74,7 @@ def get_skill_object(skill_entrypoint: str, bus: FakeBus,
             return loader.instance
     plugins = find_skill_plugins()
     if skill_entrypoint not in plugins:
-        raise ValueError(f"Requested skill not found: {skill_entrypoint}")
+        raise ValueError(f"Requested skill not found: {skill_entrypoint}; available skills: {list(plugins.keys())}")
     plugin = plugins[skill_entrypoint]
     skill = plugin(bus=bus, skill_id=skill_id)
     return skill

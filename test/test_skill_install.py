@@ -36,7 +36,7 @@ def get_skill_object(bus: FakeBus, path: str = "",
             return loader.instance
     plugins = find_skill_plugins()
     if skill_id not in plugins:
-        raise ValueError(f"Requested skill not found: {skill_id}")
+        raise ValueError(f"Requested skill not found: {skill_id}; available skills: {list(plugins.keys())}")
     else:
         LOG.info(f"Loading skill from plugin: {skill_id}")
     plugin = plugins[skill_id]
