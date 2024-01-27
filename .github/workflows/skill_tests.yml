@@ -62,7 +62,7 @@ jobs:
           pip install --upgrade pip
           pip install wheel "cython<3.0.0"  # TODO: cython patching https://github.com/yaml/pyyaml/issues/724
           if [ -z "${{inputs.pip_packages}}" ]; then
-            pip install -r ${{ github.workspace }}/action/skill/requirements/pip_skill_tests.txt
+            pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
           else
             pip install ${{inputs.pip_packages}}
           fi
