@@ -30,7 +30,7 @@ on:
         default: true
       pipaudit_ignored:
         type: string
-        default: "GHSA-r9hx-vwmv-q579 PYSEC-2022-43012 PYSEC-2023-227"
+        default: "GHSA-r9hx-vwmv-q579 PYSEC-2022-43012"
 jobs:
   py_build_tests:
     timeout-minutes: 15
@@ -48,6 +48,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Build Tools
         run: |
+          pip install --upgrade pip
           python -m pip install build wheel
       - name: Build Distribution Packages
         run: |

@@ -59,6 +59,7 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
       - name: Install Build Tools
         run: |
+          pip install --upgrade pip
           python -m pip install build wheel
       - name: Build Distribution Packages
         run: |
