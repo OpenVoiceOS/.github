@@ -15,7 +15,7 @@ on:
       python_matrix:
         description: 'Python matrix (string) to use'
         type: string
-        default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+        default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages:
         description: 'Custom pip packages (whitespace delimited) to install instead of pip_skill_tests.txt'
         required: false
