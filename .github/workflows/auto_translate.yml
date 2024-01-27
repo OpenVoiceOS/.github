@@ -13,7 +13,7 @@ on:
       locale_folder:
         description: 'The base folder to look for localization files'
         type: string
-        default: "locale"
+        default: locale
       
 
 jobs:

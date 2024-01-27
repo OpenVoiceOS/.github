@@ -17,7 +17,7 @@ on:
       locale_folder:
         description: 'The base folder to look for localization files'
         type: string
-        default: "locale"
+        default: locale
       reviewers:
         description: 'A comma or newline-separated string of reviewers'
         type: string

@@ -12,7 +12,7 @@ on:
       changelog_file:
         description: "File to write the changelog to."
         type: string
-        default: "CHANGELOG.md"
+        default: CHANGELOG.md
 
 jobs:
   build_and_publish:

@@ -4,7 +4,7 @@ on:
     inputs:
       branch:
         type: string
-        default: "dev"
+        default: dev
       python_version:
         description: 'The python version to use'
         type: string
@@ -19,12 +19,12 @@ on:
         required: true
       changelog_file:
         type: string
-        default: "CHANGELOG.md"
+        default: CHANGELOG.md
       
 
 jobs:
   bump_version:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     env:
       VERSION_FILE: ${{ inputs.version_file }}
       TARGET_BRANCH: ${{ inputs.release_type == 'build' && 'testing' || 'stable' }}

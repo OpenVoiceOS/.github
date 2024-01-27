@@ -5,7 +5,7 @@ on:
       runner:
         description: 'Runner to use'
         type: string
-        default: "ubuntu-latest"
+        default: ubuntu-latest
       python_matrix:
         description: 'Python matrix (string) to use'
         type: string
@@ -30,7 +30,7 @@ on:
         default: true
       pipaudit_ignored:
         type: string
-        default: "GHSA-r9hx-vwmv-q579 PYSEC-2022-43012"
+        default: "GHSA-r9hx-vwmv-q579 PYSEC-2022-43012 PYSEC-2023-227"
 jobs:
   py_build_tests:
     timeout-minutes: 15

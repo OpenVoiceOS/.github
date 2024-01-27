@@ -19,10 +19,10 @@ on:
       locale_folder:
         description: 'The base folder to look for localization files'
         type: string
-        default: "locale"
+        default: locale
       changelog_file:
         type: string
-        default: "CHANGELOG.md"
+        default: CHANGELOG.md
 
 jobs:
   autotranslate:

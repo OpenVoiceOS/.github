@@ -190,7 +190,7 @@ jobs:
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
       skill_testfile: test/unittest/test_skl.py # Skill test file to run, default: test/unittest/test_skill.py
-      skill_id: "ovos_skill_x.openvoiceos"      # Skill id of the testskill, required
+      skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
       test_osm: true                            # if to test with osm, default: true
       test_loader: true                         # if to test with skillloader, default: true
 ```
@@ -212,7 +212,7 @@ jobs:
       python_version: '"3.10"'                  # Python version to use, default: "3.8"
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
-      skill_id: "ovos_skill_x.openvoiceos"      # Skill id of the testskill, required
+      skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
       resource_file: test/test_resources.yaml   # Resource test file to test against, default: test/test_resources.yaml
 ```
 ## Skill Intent Tests
@@ -235,7 +235,7 @@ jobs:
       pip_packages: "pytest pytest-cov"         # Custom python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
       intent_file: test/test_intents.yaml       # Intent test file to test against, default: test/test_intents.yaml
-      skill_id: "ovos_skill_x.openvoiceos"      # Skill id of the testskill, required 
+      skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required 
       test_padatious: true                      # if to test against padatious, default: false
       test_padacioso: true                      # if to test against padacioso, default: true
 ```
