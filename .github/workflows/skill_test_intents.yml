@@ -28,7 +28,7 @@ on:
         description: 'Skill ID to test'
         required: true
         type: string
-      intent_file:
+      intent_testfile:
         description: 'Intent file to test'	
         type: string
         default: test/unittests/intent_tests.yaml

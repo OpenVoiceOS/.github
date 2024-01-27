@@ -160,7 +160,7 @@ on:
   <trigger strategy>
 
 jobs:
-  build_tests:
+  skill_tests:
     uses: openvoiceos/.github/.github/workflows/skill_tests.yml@main
     with:
       runner: ubuntu-latest
