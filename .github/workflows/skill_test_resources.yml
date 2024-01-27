@@ -37,7 +37,7 @@ jobs:
     runs-on: ${{inputs.runner}}
     timeout-minutes: 5
     steps:
-      - name: Checkout Repository
+      - name: Checkout Skill Repo
         uses: actions/checkout@v4
         with:
           ref: ${{inputs.branch}}
@@ -69,9 +69,9 @@ jobs:
           else
             pip install ${{inputs.pip_packages}}
           fi
-          cd ${{ github.workspace }}/action/skill/
-          pip install .          
+          cd ${{ github.workspace }}/action/skill
+          pip install .
       - name: Test Skill Resources
         run: |
-          export RESOURCE_TEST_FILE="action/skill/${{inputs.resource_testfile}}"
-          pytest action/github/test/test_skill_resources.py
+          export RESOURCE_TEST_FILE="${{ github.workspace }}/action/skill/${{inputs.resource_testfile}}"
+          pytest ${{ github.workspace }}/action/github/test/test_skill_resources.py
