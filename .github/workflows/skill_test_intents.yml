@@ -92,11 +92,11 @@ jobs:
         if: ${{ inputs.test_padacioso }}
         run: |
           export INTENT_ENGINE="padacioso"
-          export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_file }}"
+          export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_testfile }}"
           pytest action/github/test/test_skill_intents.py
       - name: Test Skill Intents Padatious
         if: ${{ inputs.test_padatious }}
         run: |
           export INTENT_ENGINE="padatious"
-          export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_file }}"
+          export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_testfile }}"
           pytest action/github/test/test_skill_intents.py
