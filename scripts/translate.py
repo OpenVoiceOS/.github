@@ -129,6 +129,7 @@ for root, dirs, files in os.walk(src_folder):
             src_files[rel_path] = file_path
 
 for lang in target_langs:
+    lang = lang.lower()
     # service cant translate
     if not tx.get_langcode(lang):
         continue
