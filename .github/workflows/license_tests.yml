@@ -29,11 +29,11 @@ on:
       packages-exclude:
         description: 'Regex to exclude packages from the license check'
         type: string
-        default: '^(precise-runner|fann2|tqdm|bs4|ovos-phal-plugin|ovos-skill|neon-core|nvidia|neon-phal-plugin|bitstruct).*'
+        default: '^(precise-runner|fann2|tqdm|bs4|nvidia|bitstruct).*'
       licenses-exclude:
         description: 'Regex to exclude licenses from the license check'
         type: string
-        default: '^(Mozilla|NeonAI License v1.0).*$'
+        default: '^(Mozilla).*$'
 jobs:
   license_tests:
     timeout-minutes: 15
