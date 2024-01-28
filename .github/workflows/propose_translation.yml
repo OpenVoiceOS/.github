@@ -56,12 +56,12 @@ jobs:
         python -m pip install -r action/github/requirements/pip_translation.txt
     - name: Run Translate Script
       run: |
-        python action/github/scripts/translate.py
-        cd ${{ github.workspace }}/action/package/
+        python ${{ github.workspace }}/action/github/scripts/translate.py
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        path: action/package/
         commit-message: autotranslate
         author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
         title: Proposed ${{ inputs.language }} Translations
