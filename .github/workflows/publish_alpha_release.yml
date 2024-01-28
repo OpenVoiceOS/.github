@@ -52,9 +52,9 @@ jobs:
           working-directory: action/package/
           filters: |
             locales:
-              - '${{ inputs.locale_folder }}/en-us/**'
-              - '${{ inputs.locale_folder }}/../dialog/en-us/**'
-              - '${{ inputs.locale_folder }}/../vocab/en-us/**'
+              - '${{ env.LOCALE_FOLDER }}/en-us/**'
+              - '${{ env.LOCALE_FOLDER }}/../dialog/en-us/**'
+              - '${{ env.LOCALE_FOLDER }}/../vocab/en-us/**'
       - name: Setup Python
         if: steps.filter.outputs.locales == 'true'
         uses: actions/setup-python@v5
@@ -107,7 +107,7 @@ jobs:
       - name: Push Version Change
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Increment Version to ${{ env.version }}
+          commit_message: Increment Version to ${{ env.VERSION }}
           repository: action/package/
       - name: Change working directory to release
         run: cd ${{ github.workspace }}/action/package/
@@ -116,11 +116,11 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: V${{ env.version }}
-          name: Release ${{ steps.version.outputs.version }}
+          tag: V${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
           body: |
             Changes in this Release
-            ${{ env.changelog }}
+            ${{ steps.changelog.outputs.changelog }}
           commit: ${{ inputs.branch }}
           prerelease: true
       - name: Install Build Tools
