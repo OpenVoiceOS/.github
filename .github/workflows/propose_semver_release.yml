@@ -67,6 +67,7 @@ jobs:
             git config user.name "GitHub Actions Bot"
             git commit --allow-empty -m "Initial empty commit"
             git push origin ${{ env.TARGET_BRANCH }} --force
+            git checkout ${{ inputs.branch }}
           fi
       - name: Increment Version
         id: version
