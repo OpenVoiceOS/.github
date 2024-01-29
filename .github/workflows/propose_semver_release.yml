@@ -65,7 +65,7 @@ jobs:
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
             git checkout --orphan ${{ env.TARGET_BRANCH }}
             git reset
-            git clean -fdx
+            git clean -fdx -e .git/
             git cherry-pick $FIRST_COMMIT
             git push origin ${{ env.TARGET_BRANCH }}
           fi
