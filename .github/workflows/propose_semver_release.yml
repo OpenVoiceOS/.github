@@ -92,7 +92,6 @@ jobs:
             This pull request proposes a ${{ env.TARGET_BRANCH }} release of the project.
             Please review the changelog and merge if it looks good.
           branch: ${{ env.TARGET_BRANCH }}
-          branch-suffix: ${{ env.TARGET_BRANCH }}
           base: ${{ inputs.branch }}
           draft: false
           assignees: ${{ github.actor }}
