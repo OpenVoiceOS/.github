@@ -86,7 +86,7 @@ jobs:
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
           if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
             FIRST_COMMIT=$(git rev-list --reverse HEAD | head -n 1)
-            git branch ${{ env.TARGET_BRANCH }} "$FIRST_COMMIT"
+            git checkout -b ${{ env.TARGET_BRANCH }} "$FIRST_COMMIT"
             git push origin ${{ env.TARGET_BRANCH }}
           fi
       
