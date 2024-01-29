@@ -30,7 +30,7 @@ jobs:
   bump_version:
     runs-on: ubuntu-latest
     env:
-      VERSION_FILE: ${{ inputs.version_file }}
+      VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
       TARGET_BRANCH: ${{ inputs.release_type == 'patch' && 'testing' || 'stable' }}
       GITHUB_REPOSITORY: ${{ github.repository }}
       RELEASE_TYPE: ${{ inputs.release_type }}
