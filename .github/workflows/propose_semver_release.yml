@@ -89,23 +89,5 @@ jobs:
             git branch ${{ env.TARGET_BRANCH }} $FIRST_COMMIT
             git push origin ${{ env.TARGET_BRANCH }}
           fi
-      - name: Push Changelog
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Update Changelog
-          repository: action/package/
-      - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          path: action/package/
-          commit-message: "Propose ${{ env.TARGET_BRANCH }} Release"
-          title: "Propose ${{ env.TARGET_BRANCH }} Release"
-          body: |
-            This pull request proposes a ${{ env.TARGET_BRANCH }} release of the project.
-            Please review the changelog and merge if it looks good.
-          branch: ${{ env.TARGET_BRANCH }}
-          base: ${{ inputs.branch }}
-          draft: false
-          assignees: ${{ github.actor }}
+      
       
