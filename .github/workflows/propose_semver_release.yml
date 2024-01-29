@@ -65,7 +65,8 @@ jobs:
             git checkout -b ${{ env.TARGET_BRANCH }}
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
             git reset --hard $FIRST_COMMIT
-            git push -u origin ${{ env.TARGET_BRANCH }}
+            git push -u origin ${{ env.TARGET_BRANCH }} --force
+            git checkout ${{ inputs.branch }}
           fi
       - name: Increment Version
         id: version
