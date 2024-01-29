@@ -76,22 +76,24 @@ jobs:
           output: action/package/${{ inputs.changelog_file }}
           futureRelease: ${{ env.VERSION }}
           sinceTag: ${{ env.SINCE_TAG }}
-      - name: Push Changelog
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Update Changelog
-          repository: action/package/
       - name: Set up Git Authentication
         run: |
+          cd ${{ github.workspace }}/action/package/
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
       - name: Check and Create Target Branch
         run: |
+          cd ${{ github.workspace }}/action/package/
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
           if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
             git checkout -b ${{ env.TARGET_BRANCH }} $FIRST_COMMIT
             git push origin ${{ env.TARGET_BRANCH }}
           fi
+      - name: Push Changelog
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update Changelog
+          repository: action/package/
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         uses: peter-evans/create-pull-request@v5
         with:
