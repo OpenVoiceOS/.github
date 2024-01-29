@@ -63,9 +63,13 @@ jobs:
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
           if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+            GIT_USER_NAME=$(git config --get user.name)
+            GIT_USER_EMAIL=$(git config --get user.email)
             git checkout --orphan ${{ env.TARGET_BRANCH }}
             git reset
-            git clean -fdx -e .git/
+            git clean -fdx
+            git config user.email "$GIT_USER_EMAIL"
+            git config user.name "$GIT_USER_NAME"
             git cherry-pick $FIRST_COMMIT
             git push origin ${{ env.TARGET_BRANCH }}
           fi
