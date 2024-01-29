@@ -85,6 +85,7 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          path: action/package/
           commit-message: "Propose ${{ env.TARGET_BRANCH }} Release"
           title: "Propose ${{ env.TARGET_BRANCH }} Release"
           body: |
