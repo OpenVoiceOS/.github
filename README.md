@@ -43,7 +43,7 @@ on:
       release_type:
         type: choice
         options:
-          - "build"
+          - "patch"
           - "minor"
           - "major"
 
@@ -66,7 +66,7 @@ on:
       release_type:
         type: choice
         options:
-          - "build"
+          - "patch"
           - "minor"
           - "major"
 

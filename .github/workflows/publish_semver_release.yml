@@ -1,10 +1,14 @@
-name: Publish Stable Build
+name: Publish SemVer Build
 on:
   workflow_call:
     secrets:
       PYPI_TOKEN:
         required: true
     inputs:
+      release_type:
+        type: string
+        description: 'The type of release to make'
+        required: true
       python_version:
         description: "Python version to use for the build process."
         type: string
@@ -17,7 +21,9 @@ on:
 jobs:
   build_and_publish:
     env:
-      SOURCE_BRANCH: ${{ inputs.release_type == 'build' && 'testing' || 'stable' }}
+      SOURCE_BRANCH: ${{ inputs.release_type == 'patch' && 'testing' || 'stable' }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      RELEASE_TYPE: ${{ inputs.release_type }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -29,31 +35,31 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{inputs.python_version}}
+      - name: Install Python Dependencies
+        run: |
+          pip install -r action/github/requirements/pip_base.txt
       - name: Get Version
         run: |
           VERSION=$(python setup.py --version)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Check Latest Release
-        id: latest_release
-        continue-on-error: true
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: ${{ github.repository }}
-          excludes: draft,prerelease
+        run: |
+          SINCE_TAG=$(python action/github/scripts/semver_cycle_start.py)
+          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: Generate Changelog
         id: changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           output: action/package/${{ inputs.changelog_file }}
-          sinceTag: ${{ steps.latest_release.outputs.release }}
+          sinceTag: ${{ env.SINCE_TAG }}
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: V${{ env.version }}
-          name: Release ${{ env.version }}
+          tag: V${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
           body: |
             Changes in this Release
             ${{ steps.changelog.outputs.changelog }}

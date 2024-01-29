@@ -1,4 +1,4 @@
-name: Propose Stable Release
+name: Propose SemVer Release
 on:
   workflow_call:
     inputs:
@@ -31,7 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION_FILE: ${{ inputs.version_file }}
-      TARGET_BRANCH: ${{ inputs.release_type == 'build' && 'testing' || 'stable' }}
+      TARGET_BRANCH: ${{ inputs.release_type == 'patch' && 'testing' || 'stable' }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      RELEASE_TYPE: ${{ inputs.release_type }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -48,6 +50,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python_version }}
+      - name: Install Python Dependencies
+        run: |
+          pip install -r action/github/requirements/pip_base.txt
       - name: Increment Version
         id: version
         run: |
@@ -57,15 +62,12 @@ jobs:
       - name: Push Version Change
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: Increment Version to ${{ env.version }}
+          commit_message: Increment Version to ${{ env.VERSION }}
           repository: action/package/
       - name: Check Latest Release
-        id: latest_release
-        continue-on-error: true
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: ${{ github.repository }}
-          excludes: draft,prerelease
+        run: |
+          SINCE_TAG=$(python action/github/scripts/semver_cycle_start.py)
+          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: Generate Changelog
         id: changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
@@ -73,7 +75,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           output: action/package/${{ inputs.changelog_file }}
           futureRelease: ${{ env.VERSION }}
-          sinceTag: ${{ steps.latest_release.outputs.release }}
+          sinceTag: ${{ env.SINCE_TAG }}
       - name: Push Changelog
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
