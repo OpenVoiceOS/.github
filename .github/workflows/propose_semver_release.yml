@@ -71,7 +71,7 @@ jobs:
             git config user.name "$AUTHOR_NAME"
             git config user.email "$AUTHOR_EMAIL"
             git cherry-pick $INITIAL_COMMIT
-            git push origin ${{ env.TARGET_BRANCH }} --force
+            git push -u origin ${{ env.TARGET_BRANCH }} --force
             git checkout ${{ inputs.branch }}
           fi
       
