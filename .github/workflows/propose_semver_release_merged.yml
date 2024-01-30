@@ -1,0 +1,35 @@
+name: Rebase dev after SemVer bump
+
+# only triggers on pull request closed events
+on:
+  workflow_call:
+
+jobs:
+  rebase_dev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set branch name
+        id: branch
+        run: |
+          BRANCH_NAME=$(echo "${{ github.event.pull_request.head.commit.message }}" | grep -o -E 'patch|minor|major')
+          if [ "$BRANCH_NAME" == "patch" ]; then
+            echo "BRANCH=testing" >> $GITHUB_ENV
+          else
+            echo "BRANCH=stable" >> $GITHUB_ENV
+          fi
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: "dev"
+          fetch-depth: 0
+      - name: Set up Git Authentication
+        run: |
+          cd ${{ github.workspace }}/action/package/ 
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+      - name: Rebase testing onto dev
+        run: |
+          git fetch origin ${{ env.BRANCH }}
+          git rebase origin/${{ env.BRANCH }}
+      - name: Push changes
+        run: |
+          git push origin dev

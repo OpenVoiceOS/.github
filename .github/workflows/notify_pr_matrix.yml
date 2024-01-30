@@ -11,8 +11,6 @@ on:
 jobs:
   notify_pr_matrix:
     runs-on: ubuntu-latest
-    env:
-      PACKAGE: "$(basename ${{ github.repository }})"
     steps:
       - uses: actions/checkout@v4
       - name: Send message to Matrix bots channel
@@ -23,4 +21,4 @@ jobs:
           token: ${{ secrets.MATRIX_TOKEN }}
           channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
           message: |
-            new ${{ env.PACKAGE }} PR merged! https://github.com/${{ github.repository }}/pull/${{ inputs.pr_id }}
+            new ${{ github.repository }} PR merged! https://github.com/${{ github.repository }}/pull/${{ inputs.pr_id }}

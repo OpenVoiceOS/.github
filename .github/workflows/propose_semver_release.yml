@@ -114,12 +114,12 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: action/package/
-          commit-message: "Propose ${{ env.TARGET_BRANCH }} Release"
-          title: "Propose ${{ env.TARGET_BRANCH }} Release"
+          commit-message: "Propose ${{ inputs.release_type }} release"
+          title: "Propose ${{ inputs.release_type }} release"
           body: |
             This pull request proposes a ${{ env.TARGET_BRANCH }} release of the project.
             Please review the changelog and merge if it looks good.
-          branch: staging_${{ env.TARGET_BRANCH }}
+          branch: staging_${{ inputs.release_type }}_release
           base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
