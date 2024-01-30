@@ -24,7 +24,6 @@ jobs:
           fetch-depth: 0
       - name: Set up Git Authentication
         run: |
-          cd ${{ github.workspace }}/action/package/ 
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
       - name: Rebase testing onto dev
         run: |
