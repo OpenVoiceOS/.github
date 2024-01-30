@@ -60,7 +60,7 @@ jobs:
       - name: Create Empty Branch
         run: |
           cd ${{ github.workspace }}/action/package/
-          git fetch origin ${{ inputs.branch }}
+          git fetch --unshallow origin ${{ inputs.branch }}
           INITIAL_COMMIT=$(git rev-list --max-parents=0 ${{ inputs.branch }})
           AUTHOR_NAME=$(git show -s --format='%an' $INITIAL_COMMIT)
           AUTHOR_EMAIL=$(git show -s --format='%ae' $INITIAL_COMMIT)
