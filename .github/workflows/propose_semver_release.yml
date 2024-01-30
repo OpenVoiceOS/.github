@@ -97,11 +97,6 @@ jobs:
         with:
           commit_message: Update Changelog
           repository: action/package/
-      - name: Checkout testing Branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TARGET_BRANCH }}
-          path: action/package/
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         uses: peter-evans/create-pull-request@v5
         with:
@@ -112,8 +107,8 @@ jobs:
           body: |
             This pull request proposes a ${{ env.TARGET_BRANCH }} release of the project.
             Please review the changelog and merge if it looks good.
-          branch: staging_${{ env.TARGET_BRANCH }}
-          base: ${{ inputs.branch }}
+          branch: ${{ inputs.branch }}
+          base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
       
