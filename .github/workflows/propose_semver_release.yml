@@ -102,13 +102,13 @@ jobs:
         with:
           ref: ${{ env.TARGET_BRANCH }}
           path: action/package/
-      - name: Pull Latest Changes
+      - name: Rebase Latest Changes
         run: |
           cd ${{ github.workspace }}/action/package/
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin ${{ inputs.branch }}
-          git reset --hard FETCH_HEAD
+          git rebase FETCH_HEAD
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         uses: peter-evans/create-pull-request@v5
         with:
