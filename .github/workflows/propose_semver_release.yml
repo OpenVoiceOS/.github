@@ -68,6 +68,7 @@ jobs:
             git clean -fd
             git cherry-pick $INITIAL_COMMIT
             git push origin ${{ env.TARGET_BRANCH }}
+            git checkout ${{ inputs.branch }}
           fi
       - name: Increment Version
         id: version
