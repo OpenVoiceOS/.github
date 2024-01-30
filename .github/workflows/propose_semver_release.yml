@@ -106,7 +106,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           git fetch origin ${{ inputs.branch }}
-          git merge --allow-unrelated-histories --strategy-option ours FETCH_HEAD
+          git reset --hard FETCH_HEAD
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         uses: peter-evans/create-pull-request@v5
         with:
