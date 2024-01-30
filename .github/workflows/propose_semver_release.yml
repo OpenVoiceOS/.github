@@ -60,14 +60,13 @@ jobs:
       - name: Create Empty Branch
         run: |
           cd ${{ github.workspace }}/action/package/
+          INITIAL_COMMIT=$(git rev-list --max-parents=0 HEAD)
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
           if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
             git checkout --orphan ${{ env.TARGET_BRANCH }}
             git rm --cached -r .
             git clean -fd
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git config user.name "GitHub Actions Bot"
-            git commit --allow-empty -m "Initial empty commit"
+            git cherry-pick $INITIAL_COMMIT
             git push origin ${{ env.TARGET_BRANCH }}
           fi
       - name: Increment Version
