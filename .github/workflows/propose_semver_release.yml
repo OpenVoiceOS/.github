@@ -97,6 +97,15 @@ jobs:
         with:
           commit_message: Update Changelog
           repository: action/package/
+      - name: Checkout Testing Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          path: action/package/
+      - name: Pull Latest Changes
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git pull origin ${{ inputs.branch }}
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         uses: peter-evans/create-pull-request@v5
         with:
@@ -111,4 +120,3 @@ jobs:
           base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
-      
