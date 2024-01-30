@@ -57,7 +57,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/ 
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-      - name: Create Empty Branch
+      - name: Create Branch (if necessary)
         run: |
           cd ${{ github.workspace }}/action/package/
           git fetch --unshallow origin ${{ inputs.branch }}
@@ -107,7 +107,8 @@ jobs:
           body: |
             This pull request proposes a ${{ env.TARGET_BRANCH }} release of the project.
             Please review the changelog and merge if it looks good.
-          branch: ${{ env.TARGET_BRANCH }}
+          branch: staging_${{ env.TARGET_BRANCH }}
+          base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
       
