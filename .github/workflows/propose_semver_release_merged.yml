@@ -11,7 +11,7 @@ jobs:
       - name: Set branch name
         id: branch
         run: |
-          BRANCH_NAME=$(echo "${{ github.event.pull_request.head.commit.message }}" | grep -o -E 'patch|minor|major')
+          BRANCH_NAME=$(echo "${{ github.event.pull_request.title }}" | grep -o -E 'patch|minor|major')
           if [ "$BRANCH_NAME" == "patch" ]; then
             echo "BRANCH=testing" >> $GITHUB_ENV
           else
