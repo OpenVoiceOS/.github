@@ -52,7 +52,7 @@ jobs:
           python-version: ${{ inputs.python_version }}
       - name: Install Python Dependencies
         run: |
-          pip install -r action/github/requirements/pip_base.txt
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
       - name: Set up Git Authentication
         run: |
           cd ${{ github.workspace }}/action/package/ 

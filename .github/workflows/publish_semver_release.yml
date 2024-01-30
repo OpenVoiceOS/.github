@@ -5,6 +5,10 @@ on:
       PYPI_TOKEN:
         required: true
     inputs:
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
       release_type:
         type: string
         description: 'The type of release to make'
@@ -30,21 +34,28 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.SOURCE_BRANCH }}
-          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+          fetch-depth: 0
+          path: action/package/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{inputs.python_version}}
       - name: Install Python Dependencies
         run: |
-          pip install -r action/github/requirements/pip_base.txt
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
       - name: Get Version
         run: |
-          VERSION=$(python setup.py --version)
+          VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Check Latest Release
         run: |
-          SINCE_TAG=$(python action/github/scripts/semver_cycle_start.py)
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: Generate Changelog
         id: changelog
