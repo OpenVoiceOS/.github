@@ -105,7 +105,8 @@ jobs:
       - name: Pull Latest Changes
         run: |
           cd ${{ github.workspace }}/action/package/
-          git pull origin ${{ inputs.branch }}
+          git fetch origin ${{ inputs.branch }}
+          git merge --strategy-option ours FETCH_HEAD
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         uses: peter-evans/create-pull-request@v5
         with:
