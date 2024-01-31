@@ -80,6 +80,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: set codecov run flag
+        id: codecov
+        run: |
+          if [ "${{ matrix.python-version }}" = "$FIRST_PYTHON_VERSION" ] && [ "${{ inputs.codecov }}" = "true" ]; then
+            echo "should_run=true" >> $env:GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $env:GITHUB_OUTPUT
+          fi
+        env:
+          FIRST_PYTHON_VERSION: ${{ fromJSON(inputs.python_matrix)[0] }}
       - name: Install System Dependencies
         run: |
           sudo apt update
@@ -111,7 +121,7 @@ jobs:
             pip install -e .
           fi
       - name: download test coverage artifact
-        if: ${{ inputs.codecov }} == 'true' && ${{ inputs.append_coverage }} == 'true'
+        if: ${{ steps.codecov.outputs.should_run }} == 'true' && ${{ inputs.append_coverage }} == 'true' 
         uses: actions/download-artifact@v4
         with:
           name: coverage_${{ github.repository_id }}
@@ -119,9 +129,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test package with ${{ matrix.python-version }}
         run: |
-          FIRST_PYTHON_VERSION=${{ fromJSON(inputs.python_matrix)[0] }}
           cd ${{ github.workspace }}/action/package/
-          if [ "${{ inputs.codecov }}" = "true" ] && [ "${{ matrix.python-version }}" = "$FIRST_PYTHON_VERSION" ]; then
+          if [ ${{ steps.codecov.outputs.should_run }} == 'true' ]; then
             echo "Running tests with codecov"
             if [ "${{ inputs.append_coverage }}" = "true" ]; then
               pytest --cov-append --cov=${{ inputs.package_location}} --cov-report=xml ${{ inputs.test_location }}
@@ -133,7 +142,7 @@ jobs:
             pytest ${{ inputs.test_location }}
           fi
       - name: upload test coverage artifact
-        if: ${{ inputs.codecov }} == 'true' && ${{ inputs.upload_coverage }} == 'false'
+        if: ${{ steps.codecov.outputs.should_run }} == 'true' && ${{ inputs.upload_coverage }} == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: coverage_${{ github.repository_id }}
@@ -142,7 +151,7 @@ jobs:
           if-no-files-found: ignore
           path: ${{ github.workspace }}/action/package/coverage.xml
       - name: Upload coverage
-        if: ${{ inputs.codecov }} == 'true' && ${{ inputs.upload_coverage }} == 'true'
+        if: ${{ steps.codecov.outputs.should_run }} == 'true' && ${{ inputs.upload_coverage }} == 'true'
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
