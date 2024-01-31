@@ -144,7 +144,7 @@ jobs:
     uses: openvoiceos/.github/.github/workflows/python_build_tests.yml@main
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
-      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       test_manifest: true                       # if to test with MANIFEST.in, default: false
       manifest_ignored: "test/** qt5/**"        # Files to ignore in MANIFEST.in, default: "test/**"
       test_relative_paths: false                # if to test with relative paths, default: true
@@ -152,26 +152,52 @@ jobs:
       pipaudit_ignored: ""                      # Vulnerabilities to ignore in pip-audit,
                                                 # default: "GHSA-r9hx-vwmv-q579 PYSEC-2022-43012"
 ```
-## Skills
-## Skill Unit Tests
+## Unit Tests (file or directory)
 ```yaml
 name: Skill Unit Tests
 on:
   <trigger strategy>
 
 jobs:
-  skill_tests:
-    uses: openvoiceos/.github/.github/workflows/skill_tests.yml@main
+  unit_tests:
+    uses: openvoiceos/.github/.github/workflows/pytest_file_or_dir.yml@main
     with:
       runner: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
+      action_branch: custom/branch              # Shared action branch to use, default: main
       system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt 
-      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
-      pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
-                                                # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
-      skill_testfile: test/unittest/test_skl.py # Skill test file to run, default: test/unittest/test_skill.py
+      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
+      pip_packages: "pytest pytest-cov"         # Optional Python packages (whitespace delimited) to install
+      timeout_minutes: 15                       # Timeout in minutes for the job, default: 15
+      package_location: ovos_core               # Package location relative to the root (in this case: package "ovos-core")
+                                                # (not needed if codevoc isn't used)
+      install_extras: lgpl,mycroft              # Optional comma-separated extras to install the python package with
+      test_location: test/unittests             # Test file (or directory) to run, default: test/unittests
+      is_skill: true                            # Whether this is an ovos skill, default: false
+      codecov: true                             # Whether to record the test code coverage, default: true
+      upload_coverage: true                     # Whether to upload the coverage to codecov server, default: false
+                                                # should upload only if there are no following jobs that need coverage
+  
+  # showcase with multiple jobs that should add to the coverage test
+  next_test_that_needs_coverage:
+    needs: unit_tests
+    uses: openvoiceos/.github/.github/workflows/pytest_file_or_dir.yml@main
+    with:
+      ...
+      append_coverage: true                     # Whether to append coverage to the previous job, default: false
+                                                # the artifact will be downloaded, appended and uploaded again
+    ...
+  and_another_test_that_needs_coverage:
+    needs: [ unit_tests, next_test_that_needs_coverage ]
+    uses: openvoiceos/.github/.github/workflows/pytest_file_or_dir.yml@main
+    with:
+      ...
+      append_coverage: true
+      upload_coverage: true                     # Whether to upload the coverage to codecov server
+    ...
 ```
+## Skills
 ## Skill Installation Tests
 ```yaml
 name: Skill Installation Tests
@@ -184,15 +210,14 @@ jobs:
     with:
       runner: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
+      action_branch: custom/branch              # Shared action branch to use, default: main
       system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt 
-      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
-      skill_testfile: test/unittest/test_skl.py # Skill test file to run, default: test/unittest/test_skill.py
       skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
-      test_osm: true                            # if to test with osm, default: true
-      test_loader: true                         # if to test with skillloader, default: true
+      skill_location: "skill"                   # Skill location relative to the root (can usually be omitted)
 ```
 ## Skill Resource Tests
 Tests the resources of a skill. This may be dialogs, vocabs, regex or intent resources
@@ -231,7 +256,7 @@ jobs:
       timeout: 15                               # Timeout for the test, default: 15
       system-deps: "libfann-dev libfann2"       # Custom system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt 
-      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11", "3.12"]'
+      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Custom python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
       intent_file: test/test_intents.yaml       # Intent test file to test against, default: test/test_intents.yaml

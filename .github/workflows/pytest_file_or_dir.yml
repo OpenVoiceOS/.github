@@ -1,0 +1,153 @@
+name: Unit Tests
+on:
+  workflow_call:
+    inputs:
+      runner:
+        type: string
+        default: "ubuntu-latest"
+      branch:
+        description: 'Branch to use'
+        type: string
+        default: ${{ github.ref }}
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
+      system_deps:
+        description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
+        required: false
+        type: string
+      python_matrix:
+        description: 'Python matrix (string) to use'
+        type: string
+        default: '["3.8", "3.9", "3.10", "3.11"]'
+      pip_packages:
+        description: 'Additional Python packages (whitespace delimited) to install'
+        type: string
+        default: ''
+      install_extras:
+        description: 'comma delimited extras to install the package with (eg: "test,dev")'
+        type: string
+        required: false
+      timout_minutes:
+        description: 'Timeout in minutes for the job'
+        type: number
+        default: 15
+      package_location:
+        description: 'name of the package directory relative to the base folder'
+        type: string
+      test_location:
+        description: 'test file or directory to run relative to the base folder'
+        type: string
+        default: test/unittests
+      is_skill:
+        description: 'Whether this is an ovos skill or not'
+        type: boolean
+        default: false
+      codecov:
+        description: 'Whether to record the test code coverage'
+        type: boolean
+        default: true
+      append_coverage:
+        description: 'Whether to append coverage to codecov, used for consecutive runs'
+        type: boolean
+        default: false
+      upload_coverage:
+        description: 'Whether to upload coverage to codecov'
+        type: boolean
+        default: true
+
+jobs:
+  unit_tests:
+    strategy:
+      matrix:
+        python-version: ${{ fromJSON(inputs.python_matrix) }}
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ inputs.timout_minutes }}
+    steps:
+      - name: Checkout Package Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          path: action/package/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - name: Set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install System Dependencies
+        run: |
+          sudo apt update
+          if [ -z "${{ inputs.system_deps }}" ]; then
+            xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+          else
+            sudo apt install -y ${{inputs.system_deps}}
+          fi
+      - name: upgrade pip
+        run: |
+          pip install --upgrade pip
+      - name: Install Skill Requirements
+        if: ${{ inputs.is_skill }} == 'true'
+        run: |
+          if [ -z "${{ inputs.pip_packages }}" ]; then
+            pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
+          fi
+          pip install wheel "cython<3.0.0"  # TODO: cython patching
+      - name: Install Additional Python Requirements
+        if: ${{ inputs.pip_packages }} != ''
+        run: |
+          pip install ${{ inputs.pip_packages }}
+      - name: Install Package
+        run: |
+          cd ${{ github.workspace }}/action/package
+          if [ -n "${{ inputs.install_extras }}" ]; then
+            pip install -e .[${{ inputs.install_extras }}]
+          else
+            pip install -e .
+          fi
+      - name: download test coverage artifact
+        if: ${{ inputs.codecov }} == 'true' && ${{ inputs.append_coverage }} == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage_${{ github.repository_id }}
+          path: ${{ github.workspace }}/action/package/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Test package with ${{ matrix.python-version }}
+        run: |
+          FIRST_PYTHON_VERSION=${{ fromJSON(inputs.python_matrix)[0] }}
+          cd ${{ github.workspace }}/action/package/
+          if [ "${{ inputs.codecov }}" = "true" ] && [ "${{ matrix.python-version }}" = "$FIRST_PYTHON_VERSION" ]; then
+            echo "Running tests with codecov"
+            if [ "${{ inputs.append_coverage }}" = "true" ]; then
+              pytest --cov-append --cov=${{ inputs.package_location}} --cov-report=xml ${{ inputs.test_location }}
+            else
+              pytest --cov=${{ inputs.package_location}} --cov-report=xml ${{ inputs.test_location }}
+            fi
+          else
+            echo "Running tests without codecov"
+            pytest ${{ inputs.test_location }}
+          fi
+      - name: upload test coverage artifact
+        if: ${{ inputs.codecov }} == 'true' && ${{ inputs.upload_coverage }} == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage_${{ github.repository_id }}
+          overwrite: true
+          retention-days: 1
+          if-no-files-found: ignore
+          path: ${{ github.workspace }}/action/package/coverage.xml
+      - name: Upload coverage
+        if: ${{ inputs.codecov }} == 'true' && ${{ inputs.upload_coverage }} == 'true'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          files: ${{ github.workspace }}/action/package/coverage.xml,!${{ github.workspace }}/cache
+          flags: unittests
+          name: ovos
+          verbose: true
