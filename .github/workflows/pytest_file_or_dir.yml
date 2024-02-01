@@ -24,7 +24,7 @@ on:
       pip_packages:
         description: 'Additional Python packages (whitespace delimited) to install'
         type: string
-        default: ''
+        required: false
       install_extras:
         description: 'comma delimited extras to install the package with (eg: "test,dev")'
         type: string
@@ -64,6 +64,8 @@ jobs:
         python-version: ${{ fromJSON(inputs.python_matrix) }}
     runs-on: ${{ inputs.runner }}
     timeout-minutes: ${{ inputs.timout_minutes }}
+    env:
+      FIRST_PYTHON_VERSION: ${{ fromJSON(inputs.python_matrix)[0] }}
     steps:
       - name: Checkout Package Repo
         uses: actions/checkout@v4
@@ -88,8 +90,6 @@ jobs:
           else
             echo "should_run=false" >> $env:GITHUB_OUTPUT
           fi
-        env:
-          FIRST_PYTHON_VERSION: ${{ fromJSON(inputs.python_matrix)[0] }}
       - name: Install System Dependencies
         run: |
           sudo apt update
@@ -109,7 +109,7 @@ jobs:
           fi
           pip install wheel "cython<3.0.0"  # TODO: cython patching
       - name: Install Additional Python Requirements
-        if: ${{ inputs.pip_packages }} != ''
+        if: ${{ inputs.pip_packages != null }}
         run: |
           pip install ${{ inputs.pip_packages }}
       - name: Install Package
