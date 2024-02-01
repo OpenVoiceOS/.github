@@ -154,13 +154,16 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
           path: ${{ github.workspace }}/action/package/coverage.xml
+      - name: copy report to artifact
+        if: ${{ steps.codecov.outputs.should_run == 'true' }}
+        run: |
+          cp ${{ github.workspace }}/action/package/coverage.xml ${{ github.workspace }}
       - name: Upload coverage
         if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
-          root_dir: ${{ github.workspace }}/action/package
           flags: unittests
           name: ovos
           verbose: true
