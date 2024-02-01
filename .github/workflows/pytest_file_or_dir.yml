@@ -138,8 +138,8 @@ jobs:
               pytest --cov-append --cov=./ --cov-report=xml ${{ inputs.test_location }}
             else
               pytest --cov=./ --cov-report=xml ${{ inputs.test_location }}
+              cat coverage.xml
             fi
-            cat coverage.xml
           else
             echo "Running tests without codecov"
             pytest ${{ inputs.test_location }}
