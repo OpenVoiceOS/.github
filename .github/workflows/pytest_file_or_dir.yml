@@ -29,13 +29,10 @@ on:
         description: 'comma delimited extras to install the package with (eg: "test,dev")'
         type: string
         required: false
-      timout_minutes:
+      timeout_minutes:
         description: 'Timeout in minutes for the job'
         type: number
         default: 15
-      package_location:
-        description: 'name of the package directory relative to the base folder'
-        type: string
       test_location:
         description: 'test file or directory to run relative to the base folder'
         type: string
@@ -63,7 +60,7 @@ jobs:
       matrix:
         python-version: ${{ fromJSON(inputs.python_matrix) }}
     runs-on: ${{ inputs.runner }}
-    timeout-minutes: ${{ inputs.timout_minutes }}
+    timeout-minutes: ${{ inputs.timeout_minutes }}
     env:
       FIRST_PYTHON_VERSION: ${{ fromJSON(inputs.python_matrix)[0] }}
     steps:
@@ -104,7 +101,7 @@ jobs:
         run: |
           pip install --upgrade pip
       - name: Install Skill Requirements
-        if: ${{ inputs.is_skill }} == 'true'
+        if: ${{ inputs.is_skill }}
         run: |
           if [ -z "${{ inputs.pip_packages }}" ]; then
             pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
@@ -117,13 +114,15 @@ jobs:
       - name: Install Package
         run: |
           cd ${{ github.workspace }}/action/package
+          PACKAGE_NAME=$(python setup.py --name)
           if [ -n "${{ inputs.install_extras }}" ]; then
             pip install -e .[${{ inputs.install_extras }}]
           else
             pip install -e .
           fi
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
       - name: download test coverage artifact
-        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.append_coverage  == 'true' }} 
+        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.append_coverage }} 
         uses: actions/download-artifact@v4
         with:
           name: coverage_${{ github.repository_id }}
@@ -135,16 +134,16 @@ jobs:
           if [ ${{ steps.codecov.outputs.should_run }} == 'true' ]; then
             echo "Running tests with codecov"
             if [ "${{ inputs.append_coverage }}" = "true" ]; then
-              pytest --cov-append --cov=${{ inputs.package_location}} --cov-report=xml ${{ inputs.test_location }}
+              pytest --cov-append --cov=./ --cov-report=xml ${{ inputs.test_location }}
             else
-              pytest --cov=${{ inputs.package_location}} --cov-report=xml ${{ inputs.test_location }}
+              pytest --cov=./ --cov-report=xml ${{ inputs.test_location }}
             fi
           else
             echo "Running tests without codecov"
             pytest ${{ inputs.test_location }}
           fi
       - name: upload test coverage artifact
-        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage == 'false' }}
+        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage_${{ github.repository_id }}
@@ -153,7 +152,7 @@ jobs:
           if-no-files-found: ignore
           path: ${{ github.workspace }}/action/package/coverage.xml
       - name: Upload coverage
-        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage == 'true' }}
+        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage }}
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

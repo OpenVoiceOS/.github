@@ -170,8 +170,6 @@ jobs:
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Optional Python packages (whitespace delimited) to install
       timeout_minutes: 15                       # Timeout in minutes for the job, default: 15
-      package_location: ovos_core               # Package location relative to the root (in this case: package "ovos-core")
-                                                # (not needed if codevoc isn't used)
       install_extras: lgpl,mycroft              # Optional comma-separated extras to install the python package with
       test_location: test/unittests             # Test file (or directory) to run, default: test/unittests
       is_skill: true                            # Whether this is an ovos skill, default: false
