@@ -143,6 +143,7 @@ jobs:
             echo "Running tests without codecov"
             pytest ${{ inputs.test_location }}
           fi
+          coverage report
       - name: upload test coverage artifact
         if: ${{ steps.codecov.outputs.should_run == 'true' && !inputs.upload_coverage }}
         uses: actions/upload-artifact@v4
@@ -152,11 +153,6 @@ jobs:
           retention-days: 1
           if-no-files-found: ignore
           path: ${{ github.workspace }}/action/package/coverage.xml
-      - name: Display coverage report
-        if: ${{ steps.codecov.outputs.should_run == 'true' }}
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          coverage report
       - name: Upload coverage
         if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage }}
         uses: codecov/codecov-action@v4
