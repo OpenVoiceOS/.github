@@ -143,7 +143,7 @@ jobs:
             pytest ${{ inputs.test_location }}
           fi
       - name: upload test coverage artifact
-        if: ${{ steps.codecov.outputs.should_run == 'true' && inputs.upload_coverage }}
+        if: ${{ steps.codecov.outputs.should_run == 'true' && !inputs.upload_coverage }}
         uses: actions/upload-artifact@v4
         with:
           name: coverage_${{ github.repository_id }}
@@ -160,5 +160,3 @@ jobs:
           flags: unittests
           name: ovos
           verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
