@@ -69,6 +69,7 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
           path: action/package/
+          fetch-depth: 0
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
         with:
@@ -138,12 +139,12 @@ jobs:
               pytest --cov-append --cov=./ --cov-report=xml ${{ inputs.test_location }}
             else
               pytest --cov=./ --cov-report=xml ${{ inputs.test_location }}
+              coverage report
             fi
           else
             echo "Running tests without codecov"
             pytest ${{ inputs.test_location }}
           fi
-          coverage report
       - name: upload test coverage artifact
         if: ${{ steps.codecov.outputs.should_run == 'true' && !inputs.upload_coverage }}
         uses: actions/upload-artifact@v4
