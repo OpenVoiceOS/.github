@@ -168,9 +168,9 @@ jobs:
       system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt 
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # Optional Python packages (whitespace delimited) to install
+      pip_packages: "pytest pytest-cov"         # Custom python packages (whitespace delimited) to install instead of the commonly used
       timeout_minutes: 15                       # Timeout in minutes for the job, default: 15
-      install_extras: lgpl,mycroft              # Optional comma-separated extras to install the python package with
+      install_extras: lgpl,mycroft              # Comma-separated extras to install the python package with
       test_location: test/unittests             # Test file (or directory) to run, default: test/unittests
       is_skill: true                            # Whether this is an ovos skill, default: false
       codecov: true                             # Whether to record the test code coverage, default: true

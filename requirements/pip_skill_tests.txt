@@ -1,6 +1,9 @@
+coveralls
 pytest
 pytest-cov
 mock
+wheel
+cython
 ovos-core>=0.0.8a66
 
 ovos-phal-plugin-connectivity-events~=0.0.1

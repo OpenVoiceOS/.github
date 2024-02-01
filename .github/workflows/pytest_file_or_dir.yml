@@ -100,14 +100,15 @@ jobs:
       - name: upgrade pip
         run: |
           pip install --upgrade pip
-      - name: Install Skill Requirements
-        if: ${{ inputs.is_skill }}
+      - name: Install Base Skill Requirements
+        if: ${{ inputs.is_skill && !inputs.pip_packages }}
         run: |
-          if [ -z "${{ inputs.pip_packages }}" ]; then
-            pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
-          fi
-          pip install wheel "cython<3.0.0"  # TODO: cython patching
-      - name: Install Additional Python Requirements
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
+      - name: Install Base Requirements
+        if: ${{ !inputs.is_skill && !inputs.pip_packages }}
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_tests.txt
+      - name: Install Custom Python Requirements
         if: ${{ inputs.pip_packages != null }}
         run: |
           pip install ${{ inputs.pip_packages }}

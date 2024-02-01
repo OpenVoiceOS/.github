@@ -1,4 +1,6 @@
+coveralls
 pytest
 pytest-cov
 mock
-ovos-skills-manager
+wheel
+cython
