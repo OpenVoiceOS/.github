@@ -174,8 +174,8 @@ jobs:
                                                 #        Skill: see https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt
                                                 #        Other: see https://github.com/OpenVoiceOS/.github/requirements/pip_tests.txt
       pip_install_dirs: |                       # Additional directories to install python packages from
-        /path/to/package1
-        /path/to/package2
+        relpath/to/package1
+        relpath/to/package2
       install_extras: lgpl,mycroft              # Comma-separated extras to install the python package with
       test_location: test/unittests             # Test file (or directory) to run, default: test/unittests
       is_skill: true                            # Whether this is an ovos skill, default: false

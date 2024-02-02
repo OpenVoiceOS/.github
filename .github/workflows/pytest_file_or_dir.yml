@@ -119,6 +119,7 @@ jobs:
       - name: Install Python Package Directories
         if: ${{ inputs.pip_install_dirs != null }}
         run: |
+          cd ${{ github.workspace }}/action/package/
           IFS=$'\n' read -d '' -r -a dirs <<< "${{ inputs.pip_install_dirs }}"
           for dir in "${dirs[@]}"
           do
