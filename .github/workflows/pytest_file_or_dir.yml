@@ -161,6 +161,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
           root_dir: ${{ github.workspace }}/action/package
+          directory: ${{ github.workspace }}/action/package
+          working-directory: ${{ github.workspace }}/action/package
           flags: unittests
           name: ovos
           verbose: true
