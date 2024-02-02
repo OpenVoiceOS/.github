@@ -25,6 +25,10 @@ on:
         description: 'Additional Python packages (whitespace delimited) to install'
         type: string
         required: false
+      pip_install_dirs:
+        description: 'Additional local Python package directories to install'
+        type: string
+        required: false
       install_extras:
         description: 'comma delimited extras to install the package with (eg: "test,dev")'
         type: string
@@ -90,29 +94,36 @@ jobs:
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             echo "codecov will not run"
           fi
-      - name: Install System Dependencies
+      - name: Install Common System Dependencies
         run: |
           sudo apt update
-          if [ -z "${{ inputs.system_deps }}" ]; then
-            xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
-          else
-            sudo apt install -y ${{inputs.system_deps}}
-          fi
+          xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+      - name: Install Custom System Dependencies
+        if: ${{ inputs.system_deps != null }}
+        run: |
+          sudo apt install -y ${{ inputs.system_deps }}
       - name: upgrade pip
         run: |
           pip install --upgrade pip
-      - name: Install Base Skill Requirements
-        if: ${{ inputs.is_skill && !inputs.pip_packages }}
+      - name: Install Common Python Requirements
         run: |
-          pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
-      - name: Install Base Requirements
-        if: ${{ !inputs.is_skill && !inputs.pip_packages }}
-        run: |
-          pip install -r ${{ github.workspace }}/action/github/requirements/pip_tests.txt
+          if [ "${{ inputs.is_skill }}" = "true" ]; then
+            pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
+          else
+            pip install -r ${{ github.workspace }}/action/github/requirements/pip_tests.txt
+          fi
       - name: Install Custom Python Requirements
         if: ${{ inputs.pip_packages != null }}
         run: |
           pip install ${{ inputs.pip_packages }}
+      - name: Install Python Package Directories
+        if: ${{ inputs.pip_install_dirs != null }}
+        run: |
+          IFS=$'\n' read -d '' -r -a dirs <<< "${{ inputs.pip_install_dirs }}"
+          for dir in "${dirs[@]}"
+          do
+            pip install -e "$dir"
+          done
       - name: Install Package
         run: |
           cd ${{ github.workspace }}/action/package

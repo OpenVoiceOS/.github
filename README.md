@@ -165,15 +165,23 @@ jobs:
       runner: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
-      system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
-                                                # default packages found at requirements/sys_deb_common_deps.txt 
-      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # Custom python packages (whitespace delimited) to install instead of the commonly used
       timeout_minutes: 15                       # Timeout in minutes for the job, default: 15
+      system-deps: "libfann-dev libfann2"       # Additional system dependencies to install before running the license check
+                                                # commonly installed: `gcc python3-dev swig libssl-dev libfann-dev portaudio19-dev libpulse-dev`
+      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
+      pip_packages: "pytest pytest-cov"         # Additional python packages (whitespace delimited) to install
+                                                # commonly installed: 
+                                                #        Skill: see https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt
+                                                #        Other: see https://github.com/OpenVoiceOS/.github/requirements/pip_tests.txt
+      pip_install_dirs: |                       # Additional directories to install python packages from
+        /path/to/package1
+        /path/to/package2
       install_extras: lgpl,mycroft              # Comma-separated extras to install the python package with
       test_location: test/unittests             # Test file (or directory) to run, default: test/unittests
       is_skill: true                            # Whether this is an ovos skill, default: false
       codecov: true                             # Whether to record the test code coverage, default: true
+                                                # below (append/upload_coverage) can be omitted if codecov is false
+
       upload_coverage: true                     # Whether to upload the coverage to codecov server, default: false
                                                 # should upload only if there are no following jobs that need coverage
   
