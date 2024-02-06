@@ -226,7 +226,7 @@ jobs:
       skill_location: "skill"                   # Skill location relative to the root (can usually be omitted)
 ```
 ## Skill Resource Tests
-Tests the resources of a skill. This may be dialogs, vocabs, regex or intent resources
+Tests the resources of a skill (e.g dialogs, vocabs, regex or intent resources) for completeness and workability.
 ```yaml
 name: Skill Ressource Tests
 on:
@@ -237,32 +237,13 @@ jobs:
     uses: openvoiceos/.github/.github/workflows/skill_test_resources.yml@main
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
+      timeout: 15                               # Timeout for the test, default: 15
       branch: dev                               # Branch to use, default: branch that triggered the action
+      action_branch: custom/branch              # Shared action branch to use, default: main
       system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt 
       python_version: '"3.10"'                  # Python version to use, default: "3.8"
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
-                                                # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
-      resource_file: test/test_resources.yaml   # Resource test file to test against, default: test/test_resources.yaml
-```
-## Skill Intent Tests
-Tests if intents are successfully parsed by the skill
-```yaml
-name: Skill Intent Tests
-on:
-  <trigger strategy>
-
-jobs:
-  skill_intent_tests:
-    uses: openvoiceos/.github/.github/workflows/skill_test_intents.yml@main
-    with:
-      runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
-      branch: dev                               # Branch to use, default: branch that triggered the action
-      timeout: 15                               # Timeout for the test, default: 15
-      system-deps: "libfann-dev libfann2"       # Custom system dependencies to install before running the license check
-                                                # default packages found at requirements/sys_deb_common_deps.txt 
-      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # Custom python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
       intent_file: test/test_intents.yaml       # Intent test file to test against, default: test/test_intents.yaml
       test_padatious: true                      # if to test against padatious, default: false
