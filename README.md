@@ -52,7 +52,7 @@ jobs:
     uses: openvoiceos/.github/.github/workflows/propose_semver_release.yml@main
     with:
       branch: dev                               # Branch to use, default: branch that triggered the action
-      python_version: '"3.10"'                  # Python version (quoted) to use, default: 3.8
+      python_version: "3.10"                    # Python version (quoted) to use, default: 3.8
       version_file: ovos_core/version.py        # File location of the version file, default: version.py
       release_type: ${{inputs.release_type}}    # build, minor, major
       changelog_file: ChAnGeLoG.md              # if the changlog file has a special name, default: CHANGELOG.md
@@ -75,7 +75,7 @@ jobs:
     uses: openvoiceos/.github/.github/workflows/publish_stable_release.yml@main
     secrets: inherit
     with:
-      python_version: '"3.10"'
+      python_version: "3.10"
       release_type: ${{inputs.release_type}}
       changelog_file: ChAnGeLoG.md
 ```
@@ -103,7 +103,7 @@ jobs:
     secrets: inherit
     with:
       branch: dev                               # Branch to use, default: branch that triggered the action
-      python_version: '"3.8"'
+      python_version: "3.8"
       language: ${{ inputs.translation }}
       locale_folder: ovos_core/locale/          # the location of the base localisation folder, default: locale
       reviewers: "jarbasai,emphasize"           # comma separated list of reviewers, default: emphasize
@@ -123,7 +123,7 @@ jobs:
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
-      python-version: '"3.8"'                   # Python version (quoted) to use, default: 3.8
+      python-version: "3.8"                     # Python version (quoted) to use, default: 3.8
       system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt
       package-extras: test                      # Optional extras to install the python package with
@@ -242,7 +242,7 @@ jobs:
       action_branch: custom/branch              # Shared action branch to use, default: main
       system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
                                                 # default packages found at requirements/sys_deb_common_deps.txt 
-      python_version: '"3.10"'                  # Python version to use, default: "3.8"
+      python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
       intent_file: test/test_intents.yaml       # Intent test file to test against, default: test/test_intents.yaml
