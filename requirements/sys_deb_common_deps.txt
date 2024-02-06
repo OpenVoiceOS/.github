@@ -5,3 +5,5 @@ libssl-dev
 libfann-dev
 portaudio19-dev
 libpulse-dev
+libicu-dev
+pkg-config

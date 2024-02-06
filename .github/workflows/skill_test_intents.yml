@@ -28,10 +28,6 @@ on:
         description: 'Optional system dependencies to install instead of requirements.txt'
         required: false
         type: string
-      skill_id:
-        description: 'Skill ID to test'
-        required: true
-        type: string
       intent_testfile:
         description: 'Intent file to test'	
         type: string
@@ -47,8 +43,6 @@ on:
 
 jobs:
   test_intents_ovos:
-    env:
-      TEST_SKILL_ENTRYPOINT_NAME: ${{ inputs.skill_id }}
     runs-on: ${{inputs.runner}}
     timeout-minutes: ${{inputs.timeout}}
     strategy:
@@ -89,9 +83,8 @@ jobs:
           fi
           cd ${{ github.workspace }}/action/skill
           pip install .
-      # when skill names are normalized
-      # - name: Set TEST_SKILL_ENTRYPOINT_NAME
-      #   run: echo "TEST_SKILL_ENTRYPOINT_NAME=$(basename ${{ github.repository }} | sed 's/-/_/g').$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          PKG_NAME=$(python setup.py --name)
+          export TEST_SKILL_PKG_FOLDER=$(pip show -f $PKG_NAME | grep Location | cut -d ' ' -f 2)
       - name: Test Skill Intents Padacioso
         if: ${{ inputs.test_padacioso }}
         run: |
