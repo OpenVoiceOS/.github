@@ -173,12 +173,6 @@ class TestSkillIntents(unittest.TestCase):
     SessionManager.default_session = session
     SessionManager.sessions = {"default": session}
 
-    # Start the IntentService
-    bus = FakeBus()
-    bus.run_forever()
-    from ovos_core.intent_services import IntentService
-    intent_service = IntentService(bus)
-
     test_skill_id = 'test_skill.test'
     skill = None
 
