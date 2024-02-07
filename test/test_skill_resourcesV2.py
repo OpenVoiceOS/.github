@@ -14,7 +14,7 @@ import unittest
 import yaml
 from mock import Mock, patch
 
-from ovos_core.intent_services import PadatiousMatcher
+from ovos_core.intent_services import PadatiousMatcher, IntentService
 from ovos_bus_client import Message
 from ovos_bus_client.session import Session, SessionManager
 from ovos_config.config import update_mycroft_config, Configuration
@@ -256,20 +256,25 @@ class TestSkillIntents(unittest.TestCase):
         def _on_message(msg):
             cls.last_message = msg
             cls.messages.append(msg)
-        
-        for msg_type in CAPTURE_INTENT_MESSAGES:
-            cls.bus.on(msg_type, _on_message)
 
-        skill_folder = getenv("TEST_SKILL_PKG_FOLDER")
-        cls.skill = get_skill_object(skill_entrypoint=skill_folder,
-                                     bus=cls.bus,
-                                     skill_id=cls.test_skill_id)
-
+        skill_folder = getenv("SKILL_FOLDER")        
         # Ensure all tested languages are loaded
         import ovos_config
         cls.supported_languages = SkillResources.get_available_languages(skill_folder)
         update_mycroft_config({"secondary_langs": cls.supported_languages})
         importlib.reload(ovos_config.config)
+
+        # Start the IntentService
+        cls.bus = FakeBus()
+        cls.bus.run_forever()
+        cls.intent_service = IntentService(cls.bus)
+
+        for msg_type in CAPTURE_INTENT_MESSAGES:
+            cls.bus.on(msg_type, _on_message)
+
+        cls.skill = get_skill_object(skill_entrypoint=skill_folder,
+                                     bus=cls.bus,
+                                     skill_id=cls.test_skill_id)
 
         cls.init_intent_file()
     
