@@ -251,7 +251,7 @@ class TestSkillIntents(unittest.TestCase):
             cls.last_message = msg
             cls.messages.append(msg)
 
-        skill_folder = getenv("SKILL_FOLDER")        
+        skill_folder = getenv("TEST_SKILL_PKG_FOLDER")        
         # Ensure all tested languages are loaded
         import ovos_config
         cls.supported_languages = SkillResources.get_available_languages(skill_folder)
