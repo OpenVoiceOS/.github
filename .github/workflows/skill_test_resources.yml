@@ -87,7 +87,7 @@ jobs:
           PKG_NAME=$(python setup.py --name)
           BASE_FOLDER=$(echo $PKG_NAME | tr '-' '_')
           PKG_FOLDER=$(pip show -f $PKG_NAME | grep Location | cut -d ' ' -f 2)
-          echo "TEST_SKILL_PKG_FOLDER: $PKG_FOLDER/$BASE_FOLDER" >> $GITHUB_ENV
+          echo "TEST_SKILL_PKG_FOLDER=$PKG_FOLDER/$BASE_FOLDER" >> $GITHUB_ENV
       - name: Test Skill Intents Padacioso
         if: ${{ inputs.test_padacioso }}
         run: |
