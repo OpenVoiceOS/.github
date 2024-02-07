@@ -5,6 +5,7 @@ mock
 wheel
 cython
 ovos-core>=0.0.8a66
+ovos-workshop>=0.0.16a14
 
 ovos-phal-plugin-connectivity-events~=0.0.1
 padatious>=0.4.8, < 0.5.0
