@@ -33,14 +33,6 @@ on:
         description: 'Intent file to test'	
         type: string
         default: test/unittests/intent_tests.yaml
-      test_padatious:
-        description: 'Whether to skip padatious tests'
-        type: boolean
-        default: False
-      test_padacioso:
-        description: 'Whether to skip padacioso tests'
-        type: boolean
-        default: True
 
 jobs:
   test_resources:
@@ -88,16 +80,7 @@ jobs:
           BASE_FOLDER=$(echo $PKG_NAME | tr '-' '_')
           PKG_FOLDER=$(pip show -f $PKG_NAME | grep Location | cut -d ' ' -f 2)
           echo "TEST_SKILL_PKG_FOLDER=$PKG_FOLDER/$BASE_FOLDER" >> $GITHUB_ENV
-      - name: Test Skill Intents Padacioso
-        if: ${{ inputs.test_padacioso }}
-        run: |
-          export INTENT_ENGINE="padacioso"
-          export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_testfile }}"
-          echo "Intent Test File: $INTENT_TEST_FILE"
-          echo "Skill Folder: ${{ env.TEST_SKILL_PKG_FOLDER }}"
-          pytest action/github/test/test_skill_resourcesV2.py
-      - name: Test Skill Intents Padatious
-        if: ${{ inputs.test_padatious }}
+      - name: Test Skill Resources
         run: |
           export INTENT_ENGINE="padatious"
           export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_testfile }}"
