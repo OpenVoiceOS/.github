@@ -6,6 +6,7 @@ from pathlib import Path
 from functools import reduce
 import operator
 import random
+import re
 from copy import deepcopy
 from typing import Optional, List
 
@@ -227,7 +228,10 @@ class TestSkillIntents(unittest.TestCase):
                             valid_intents.extend(generate_sentences(options, 4))
                 # prepare padatious intents
                 elif intent.service == "padatious":
-                    options = resources.load_intent_file(intent.name, entities=False)
+                    options = resources.load_intent_file(intent.name)
+                    # substitute entities
+                    for i, option in enumerate(options):
+                        options[i] = re.sub(r'\{.*?\}', "test", option)
                     # filter out intents that don't match the options
                     for line in present_intents:
                         if line in options:
@@ -350,6 +354,7 @@ class TestSkillIntents(unittest.TestCase):
                 intent_handler = Mock()
                 self.skill.events.add(intent_event, intent_handler)
                 for utt in examples:
+                    LOG.info(f"Testing utterance '{utt}'")
                     if isinstance(utt, dict):
                         data = list(utt.values())[0]
                         utt = list(utt.keys())[0]
