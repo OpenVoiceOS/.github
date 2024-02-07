@@ -284,8 +284,11 @@ class TestSkillIntents(unittest.TestCase):
                 self.assertIn(lang, self.skill._native_langs, lang)
             else:
                 self.assertIn(lang, self.skill.native_langs, lang)
-            self.assertIn(lang,
-                          self.intent_service.padatious_service.containers)
+            if use_padacioso:
+                intent_containers = self.intent_service.padacioso_service.containers
+            else:
+                intent_containers = self.intent_service.padatious_service.containers
+            self.assertIn(lang, intent_containers)
     
     def test_ressources(self):
         """
