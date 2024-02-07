@@ -86,6 +86,8 @@ jobs:
           pip install -e .
           PKG_NAME=$(python setup.py --name)
           export TEST_SKILL_PKG_FOLDER=$(pip show -f $PKG_NAME | grep Location | cut -d ' ' -f 2)
+          echo "Package name: $PKG_NAME"
+          echo "Test folder: $TEST_SKILL_PKG_FOLDER"
       - name: Test Skill Intents Padacioso
         if: ${{ inputs.test_padacioso }}
         run: |
