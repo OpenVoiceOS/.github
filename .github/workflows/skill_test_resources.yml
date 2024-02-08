@@ -18,7 +18,7 @@ on:
         type: number
         default: 15
       system_deps:
-        description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
+        description: 'Additional system dependencies (whitespace delimited) to install'
         required: false
         type: string
       python_matrix:
@@ -26,7 +26,7 @@ on:
         type: string
         default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages:
-        description: 'Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
+        description: 'Additional Python packages (whitespace delimited) to install'
         required: false
         type: string
       intent_testfile:
@@ -59,23 +59,26 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install System Dependencies
+      - name: Install Common System Dependencies
         run: |
           sudo apt update
-          if [ -z "${{inputs.system_deps}}" ]; then
-            xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
-          else
-            sudo apt install -y ${{inputs.system_deps}}
-          fi
-      - name: Install Python Skill and Requirements
+          xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+      - name: Install Custom System Dependencies
+        if: ${{ inputs.system_deps != null }}
+        run: |
+          sudo apt install -y ${{ inputs.system_deps }}
+      - name: upgrade pip
         run: |
           pip install --upgrade pip
-          pip install wheel "cython<3.0.0"  # TODO: cython patching https://github.com/yaml/pyyaml/issues/724
-          if [ -z "${{inputs.pip_packages}}" ]; then
-            pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
-          else
-            pip install ${{inputs.pip_packages}}
-          fi
+      - name: Install Common Python Requirements
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_skill_tests.txt
+      - name: Install Custom Python Requirements
+        if: ${{ inputs.pip_packages != null }}
+        run: |
+          pip install ${{ inputs.pip_packages }}
+      - name: Install Python Skill
+        run: |
           cd ${{ github.workspace }}/action/skill
           pip install .
           PKG_NAME=$(python setup.py --name)

@@ -14,7 +14,7 @@ on:
         type: string
         default: main
       system_deps:
-        description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
+        description: 'Additional system dependencies (whitespace delimited) to install'
         required: false
         type: string
       python_matrix:

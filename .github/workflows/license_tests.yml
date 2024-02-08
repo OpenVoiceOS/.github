@@ -14,15 +14,19 @@ on:
         description: 'The shared action branch to checkout'
         type: string
         default: main
-      python-version:
+      python_version:
         description: 'Python version to use'
         type: string
         default: '3.8'
-      system-deps:
-        description: 'System dependencies (whitespace delimited) to install instead of sys_deb_common_deps.txt'
+      system_deps:
+        description: 'Additional system dependencies (whitespace delimited) to install'
         required: false
         type: string
-      package-extras:
+      pip_packages:
+        description: 'Additional Python packages (whitespace delimited) to install'
+        type: string
+        required: false
+      install_extras:
         description: 'Optional extras to install the python package with'
         required: false
         type: string
@@ -53,25 +57,26 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ inputs.python-version }}
-      - name: Install Build Tools
+          python-version: ${{ inputs.python_version }}
+      - name: Install Custom System Dependencies
+        if: ${{ inputs.system_deps != null }}
         run: |
-          python -m pip install build wheel
-      - name: Install System Dependencies
+          sudo apt update
+          sudo apt install -y ${{ inputs.system_deps }}
+      - name: upgrade pip
         run: |
-          sudo apt-get update
-          if [ -z ${{ inputs.system-deps }} ]; then
-            xargs sudo apt-get install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
-          else
-            sudo apt-get install ${{ inputs.system-deps }}
-          fi
+          pip install --upgrade pip
+      - name: Install Custom Python Requirements
+        if: ${{ inputs.pip_packages != null }}
+        run: |
+          pip install ${{ inputs.pip_packages }}
       - name: Install repo
         run: |
           cd ${{ github.workspace }}/action/package
-          if [ -z ${{ inputs.package-extras }} ]; then
+          if [ -z ${{ inputs.install_extras }} ]; then
             pip install .
           else
-            pip install .[${{ inputs.package-extras }}]
+            pip install .[${{ inputs.install_extras }}]
           fi
       - name: Get explicit and transitive dependencies
         run: |

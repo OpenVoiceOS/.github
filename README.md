@@ -104,10 +104,10 @@ jobs:
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
-      python-version: "3.8"                     # Python version (quoted) to use, default: 3.8
-      system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
-                                                # default packages found at requirements/sys_deb_common_deps.txt
-      package-extras: test                      # Optional extras to install the python package with
+      system_deps: "somepkg"                    # System dependencies (whitespace delimited) to install
+      pip_packages: "random-pkg"                # Python packages (whitespace delimited) to install
+      python_version: "3.8"                     # Python version (quoted) to use, default: 3.8
+      install_extras: test                      # Optional extras to install the python package with
       packages-exclude: '^(fann2|tqdm|bs4).*'   # Custom regex to exclude packages from the license check
                                                 # default: '^(precise-runner|fann2|tqdm|bs4|nvidia|bitstruct).*'
       licenses-exclude: ^(BSD-3).*$'            # Custom regex to exclude licenses from the license check
@@ -125,6 +125,10 @@ jobs:
     uses: openvoiceos/.github/.github/workflows/python_build_tests.yml@main
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
+      branch: dev                               # Branch to use, default: branch that triggered the action
+      system_deps: "libfann-dev libfann2"       # System dependencies (whitespace delimited) to install
+      pip_packages: "pytest pytest-cov"         # Additional python packages (whitespace delimited) to install
+                                                # commonly installed: `build wheel`
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       test_manifest: true                       # if to test with MANIFEST.in, default: false
       manifest_ignored: "test/** qt5/**"        # Files to ignore in MANIFEST.in, default: "test/**"
@@ -147,8 +151,8 @@ jobs:
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
       timeout_minutes: 15                       # Timeout in minutes for the job, default: 15
-      system-deps: "libfann-dev libfann2"       # Additional system dependencies to install before running the license check
-                                                # commonly installed: `gcc python3-dev swig libssl-dev libfann-dev portaudio19-dev libpulse-dev`
+      system_deps: "libfann-dev libfann2"       # Additional system dependencies to install before running the license check
+                                                # [common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Additional python packages (whitespace delimited) to install
                                                 # commonly installed: 
@@ -198,11 +202,11 @@ jobs:
       runner: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
-      system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
-                                                # default packages found at requirements/sys_deb_common_deps.txt 
+      system_deps: "libfann-dev libfann2"       # Additional system dependencies (whitespace delimited) to install
+                                                # [common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
-                                                # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
+                                                # [common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)
       skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
       skill_location: "skill"                   # Skill location relative to the root (can usually be omitted, used if the skill is not located in the base folder)
 ```
@@ -221,11 +225,11 @@ jobs:
       timeout: 15                               # Timeout for the test, default: 15
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
-      system-deps: "libfann-dev libfann2"       # Optional system dependencies to install before running the license check
-                                                # default packages found at requirements/sys_deb_common_deps.txt 
+      system_deps: "libfann-dev libfann2"       # Additional system dependencies (whitespace delimited) to install
+                                                # [common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
-                                                # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
+                                                # [common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)
       intent_testfile: test/test_intents.yaml   # Intent test file to test against, required
       test_padatious: true                      # if to test against padatious, default: false
       test_padacioso: true                      # if to test against padacioso, default: true
