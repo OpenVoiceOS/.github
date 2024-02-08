@@ -88,6 +88,7 @@ jobs:
           requirements: 'requirements-all.txt'
           fail: 'Copyleft,Other,Error'
           fails-only: true
+          pre: true
           exclude: ${{ inputs.packages-exclude }}
           exclude-license: ${{ inputs.licenses-exclude }}
       - name: Print report

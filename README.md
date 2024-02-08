@@ -93,6 +93,7 @@ jobs:
 
 ## License testing
 Tests validity of licenses of all packages (explicit and transitive).
+(Note:)
 ```yaml
 name: License testing
 on:
