@@ -89,6 +89,7 @@ jobs:
           fail: 'Copyleft,Other,Error'
           fails-only: true
           pre: true
+          verbose: 2
           exclude: ${{ inputs.packages-exclude }}
           exclude-license: ${{ inputs.licenses-exclude }}
       - name: Print report
