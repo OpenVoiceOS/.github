@@ -38,6 +38,8 @@ jobs:
   test_resources:
     runs-on: ${{ inputs.runner }}
     timeout-minutes: ${{ inputs.timeout }}
+    env:
+      INTENT_TEST_FILE: ${{ github.workspace }}/action/skill/${{ inputs.intent_testfile }}
     strategy:
       matrix:
         python-version: ${{ fromJSON(inputs.python_matrix) }}
@@ -75,20 +77,17 @@ jobs:
             pip install ${{inputs.pip_packages}}
           fi
           cd ${{ github.workspace }}/action/skill
-          pip install -e .
+          pip install .
           PKG_NAME=$(python setup.py --name)
           BASE_FOLDER=$(echo $PKG_NAME | tr '-' '_')
           PKG_FOLDER=$(pip show -f $PKG_NAME | grep Location | cut -d ' ' -f 2)
           echo "TEST_SKILL_PKG_FOLDER=$PKG_FOLDER/$BASE_FOLDER" >> $GITHUB_ENV
+      - name: Update Resource Testfile
+        run: |
+          python action/github/scripts/update_intent_testfile.py
       - name: Test Skill Resources
         run: |
           export INTENT_ENGINE="padatious"
-          export INTENT_TEST_FILE="${{ github.workspace }}/action/skill/${{ inputs.intent_testfile }}"
-          echo "Intent Test File: $INTENT_TEST_FILE"
+          echo "Intent Test File: ${{ env.INTENT_TEST_FILE }}"
           echo "Skill Folder: ${{ env.TEST_SKILL_PKG_FOLDER }}"
           pytest action/github/test/test_skill_resourcesV2.py
-      - name: Push testyaml Change
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "update test yaml"
-          repository: action/skill/

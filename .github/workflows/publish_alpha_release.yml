@@ -24,6 +24,10 @@ on:
         description: 'The base folder to look for localization files'
         type: string
         default: locale
+      update_intentfile:
+        description: 'The file to update with the resource changes. This is atm only used for skills.'
+        type: string
+        required: false
       changelog_file:
         type: string
         default: CHANGELOG.md
@@ -38,6 +42,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           ref: ${{ github.ref }}
           path: action/package/
       - name: Checkout Scripts Repo
@@ -51,28 +56,45 @@ jobs:
         with:
           working-directory: action/package/
           filters: |
-            locales:
+            us_specific:
               - '${{ inputs.locale_folder }}/en-us/**'
               - '${{ inputs.locale_folder }}/../dialog/en-us/**'
               - '${{ inputs.locale_folder }}/../vocab/en-us/**'
+            general:
+              - '${{ inputs.locale_folder }}/**'
+              - '${{ inputs.locale_folder }}/../dialog/**'
+              - '${{ inputs.locale_folder }}/../vocab/**'
       - name: Setup Python
-        if: steps.filter.outputs.locales == 'true'
+        if: steps.filter.outputs.us_specific == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ inputs.python_version }}
-      - name: Auto Translate
-        if: steps.filter.outputs.locales == 'true'
+      - name: Install Python Requirements
+        if: steps.filter.outputs.us_specific == 'true'
         run: |
           python -m pip install -r action/github/requirements/pip_translation.txt
+      - name: Pull latest changes
+        if: steps.filter.outputs.us_specific == 'true'
+        run: |
+          git pull origin ${{ inputs.branch }}
+      - name: Auto Translate
+        if: steps.filter.outputs.us_specific == 'true'
+        run: |
           python action/github/scripts/translate.py
       - name: Commit to ${{ inputs.branch }}
-        if: steps.filter.outputs.locales == 'true'
+        if: steps.filter.outputs.us_specific == 'true'
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: autotranslate
           repository: action/package/
           branch: ${{ inputs.branch }}
-    
+      - name: update and commit resource_changes
+        if: steps.filter.outputs.general == 'true' && ${{ inputs.update_intentfile }}
+        run: |
+          python action/github/scripts/update_intent_testfile.py
+          git add ${{ inputs.update_intentfile }}
+          git commit -m "Update resource test file"
+
   build_and_publish:
     runs-on: ubuntu-latest
     env:

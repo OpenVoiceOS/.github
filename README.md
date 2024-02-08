@@ -29,8 +29,9 @@ jobs:
       branch: dev                               # Branch to use, default: branch that triggered the action
       version_file: ovos_core/version.py        # File location of the version file, default: version.py
       python_version: "3.8"                     # Python version (quoted) to use, default: 3.8
-      locale_folder: ovos_core/locale           # if there are localisation files the location of the base folder, default: locale
-      changelog_file: CHANGELOG.md              # if the changlog file has a special name, default: CHANGELOG.md
+      locale_folder: ovos_core/locale           # use if there are localisation files the location of the base folder, default: locale
+      update_intentfile: test/test_intents.yaml # use if there are changes to resource files, the test file to update. (ONLY USED IN SKILLS)
+      changelog_file: CHANGELOG.md              # use if the changlog file has a special name, default: CHANGELOG.md
 ```
 ## Propose and Publish Stable (Build,Minor,Major) Release
 Strategy: 2-fold  
@@ -154,7 +155,7 @@ jobs:
 ```
 ## Unit Tests (file or directory)
 ```yaml
-name: Skill Unit Tests
+name: Unit Tests
 on:
   <trigger strategy>
 

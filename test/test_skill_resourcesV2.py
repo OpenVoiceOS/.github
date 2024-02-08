@@ -1,13 +1,6 @@
 import logging
 from os import getenv
 from os.path import isdir
-from dataclasses import dataclass
-from pathlib import Path
-from functools import reduce
-import operator
-import random
-import re
-from copy import deepcopy
 from typing import Optional, List
 
 import importlib
@@ -21,11 +14,9 @@ from ovos_bus_client.session import Session, SessionManager
 from ovos_config.config import update_mycroft_config, Configuration
 from ovos_utils.messagebus import FakeBus
 from ovos_utils.log import LOG
-from ovos_utils import flatten_list
 from ovos_plugin_manager.skills import find_skill_plugins
 from ovos_workshop.skill_launcher import SkillLoader
 from ovos_workshop.skills.base import BaseSkill
-from ovos_workshop.intents import IntentBuilder
 from ovos_workshop.resource_files import SkillResources
 
 
@@ -46,19 +37,6 @@ CAPTURE_INTENT_MESSAGES = [
     "register_intent",
 ]
 
-@dataclass
-class Intent:
-    service: str
-    name: str
-    filestems: set
-    suffix: str = ""
-
-    def __post_init__(self):
-        if self.service == "padatious":
-            self.suffix = ".intent"
-        elif self.service == "adapt":
-            self.suffix = ".voc"
-    
 
 class MockPadatiousMatcher(PadatiousMatcher):
     include_med = True
@@ -109,54 +87,6 @@ def get_skill_object(skill_entrypoint: str, bus: FakeBus,
     return skill
 
 
-def get_intents_from_skillcode(skill) -> List[Intent]:
-    intents = []
-    for method_name in dir(skill):
-        method = getattr(skill, method_name)
-        if callable(method) and hasattr(method, 'intents'):
-            for intent in method.intents:
-                if isinstance(intent, str):
-                    # If the intent is a string, it's the intent name
-                    stem = Path(intent).stem
-                    # string contains the suffix ".intent"
-                    intents.append(Intent("padatious", intent, [stem]))
-                elif isinstance(intent, IntentBuilder):
-                    vocs = list()
-                    if intent.at_least_one:
-                        vocs.append(intent.at_least_one[0])
-                    if intent.requires:
-                        vocs.append((intent.requires[0][0],))
-                    if intent.optional:
-                        vocs.append((intent.optional[0][0],))
-
-                    intents.append(Intent("adapt", intent.name, vocs))
-    return intents
-
-
-def count_permutations(options):
-    permutations = []
-    for sublist in options:
-        choices = set(flatten_list(sublist))
-        permutations.append(len(choices))
-    return reduce(operator.mul, permutations, 1)
-
-
-def generate_sentences(options: List[List[List[str]]],
-                       max: int,
-                       max_random: int = 0) -> List[str]:
-    sentences = []    
-    while len(sentences) < min(max, count_permutations(options)):
-        # we can add an ai sentence generator in the future
-        sentence = []
-        for sublist in options:
-            choice = random.choice(sublist)
-            sentence.append(random.choice(choice))
-        _sentence = " ".join(sentence)
-        if _sentence not in sentences:
-            sentences.append(" ".join(sentence))
-    return sentences
-
-
 class TestSkillIntents(unittest.TestCase):
     messages: List[Message]= list()
     last_message: Optional[Message] = None
@@ -177,76 +107,6 @@ class TestSkillIntents(unittest.TestCase):
     test_skill_id = 'test_skill.test'
     skill = None
 
-    @classmethod
-    def init_intent_file(self):
-        """
-        check the intent test yaml for recent changes and keep it up to date
-        """
-        
-        skill_intents = get_intents_from_skillcode(self.skill)
-        # those intents most likely are identical, but we want the one used in the code
-        # (opposed to being present as resource and not being used in the skill)
-        skill_resources = self.skill.resources.get_inventory()
-
-        # Load the test intent file
-        yaml_location = getenv("INTENT_TEST_FILE")
-        with open(yaml_location) as f:
-            test_yaml = yaml.safe_load(f)
-
-        self.valid_intents = deepcopy(test_yaml)
-        self.negative_intents = self.valid_intents.pop('unmatched intents', dict())
-        self.common_query = self.valid_intents.pop("common query", dict())
-        self.regex = set(skill_resources['regex'])
-
-        for intent in skill_intents:
-            self.intents.add(intent.name)
-            if intent.service == "adapt":
-                self.vocab.update({voc.lower() for voc in set(flatten_list(intent.filestems))})
-
-        assert self.skill.config_core["secondary_langs"] == self.supported_languages
-        # update yaml file based on the present intents
-        for lang in self.supported_languages:
-            test_yaml.setdefault(lang, dict())
-            resources = self.skill.load_lang(lang=lang)
-            for intent in skill_intents:
-                test_yaml[lang].setdefault(intent.name, list())
-                present_intents = test_yaml[lang][intent.name]
-                valid_intents = []
-                # prepare adapt intents
-                if intent.service == "adapt":
-                    options = [
-                        [ flatten_list(resources.load_vocabulary_file(voc))
-                        for voc in vocs ] for vocs in intent.filestems
-                    ]
-                    # filter out intents that don't match the options
-                    for line in present_intents:
-                        if all(any(any(word in line for word in choice) for choice in option) for option in options):
-                            valid_intents.append(line)
-                    # add possible combinations of options
-                    for option in options:
-                        if not any(any(any(word in intent for word in choice) for choice in option) for intent in valid_intents):
-                            valid_intents.extend(generate_sentences(options, 4))
-                # prepare padatious intents
-                elif intent.service == "padatious":
-                    options = resources.load_intent_file(intent.name)
-                    # substitute entities
-                    for i, option in enumerate(options):
-                        options[i] = re.sub(r'\{.*?\}', "test", option)
-                    # filter out intents that don't match the options
-                    for line in present_intents:
-                        if line in options:
-                            valid_intents.append(line)
-                    random.shuffle(options)
-                    if len(valid_intents) < 5:
-                        for option in options:
-                            if option not in valid_intents:
-                                valid_intents.append(option)
-
-                test_yaml[lang][intent.name] = valid_intents
-            self.valid_intents[lang] = test_yaml[lang]
-        
-        with open(yaml_location, "w", encoding='utf8') as f:
-            yaml.dump(test_yaml, f, allow_unicode=True)
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -274,7 +134,18 @@ class TestSkillIntents(unittest.TestCase):
                                      bus=cls.bus,
                                      skill_id=cls.test_skill_id)
 
-        cls.init_intent_file()
+        skill_resources = cls.skill.resources.get_inventory()
+
+        # Load the test intent file
+        yaml_location = getenv("INTENT_TEST_FILE")
+        with open(yaml_location) as f:
+            valid_intents = yaml.safe_load(f)
+
+        cls.negative_intents = valid_intents.pop('unmatched intents', dict())
+        cls.common_query = valid_intents.pop("common query", dict())
+        cls.regex = set(skill_resources['regex'])
+
+        cls.valid_intents = valid_intents
     
     @classmethod
     def tearDownClass(cls) -> None:
