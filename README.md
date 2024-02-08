@@ -246,7 +246,7 @@ jobs:
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
-      intent_file: test/test_intents.yaml       # Intent test file to test against, default: test/test_intents.yaml
+      intent_testfile: test/test_intents.yaml   # Intent test file to test against, required
       test_padatious: true                      # if to test against padatious, default: false
       test_padacioso: true                      # if to test against padacioso, default: true
 ```

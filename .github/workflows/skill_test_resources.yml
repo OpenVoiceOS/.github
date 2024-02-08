@@ -30,9 +30,9 @@ on:
         required: false
         type: string
       intent_testfile:
-        description: 'Intent file to test'	
+        description: 'Intent file to test'
+        required: true
         type: string
-        default: test/unittests/intent_tests.yaml
 
 jobs:
   test_resources:
