@@ -151,13 +151,9 @@ jobs:
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
       timeout_minutes: 15                       # Timeout in minutes for the job, default: 15
-      system_deps: "libfann-dev libfann2"       # Additional system dependencies to install before running the license check
-                                                # [common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)
+      system_deps: "libfann-dev libfann2"       # (*) Additional system dependencies to install before running the license check
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # Additional python packages (whitespace delimited) to install
-                                                # commonly installed: 
-                                                #        Skill: see https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt
-                                                #        Other: see https://github.com/OpenVoiceOS/.github/requirements/pip_tests.txt
+      pip_packages: "pytest pytest-cov"         # (**) Additional python packages (whitespace delimited) to install
       pip_install_dirs: |                       # Additional directories to install python packages from
         relpath/to/package1
         relpath/to/package2
@@ -188,6 +184,8 @@ jobs:
       upload_coverage: true                     # Whether to upload the coverage to codecov server
     ...
 ```
+(*) [Common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)  
+(**) Common python dependencies: [skill](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt) / [other](https://github.com/OpenVoiceOS/.github/requirements/pip_tests.txt) 
 ## Skills
 ## Skill Installation Tests
 ```yaml
@@ -202,14 +200,14 @@ jobs:
       runner: ubuntu-latest
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
-      system_deps: "libfann-dev libfann2"       # Additional system dependencies (whitespace delimited) to install
-                                                # [common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)
+      system_deps: "libfann-dev libfann2"       # (*) Additional system dependencies (whitespace delimited) to install
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
-                                                # [common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)
+      pip_packages: "pytest pytest-cov"         # (**) Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
       skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
       skill_location: "skill"                   # Skill location relative to the root (can usually be omitted, used if the skill is not located in the base folder)
 ```
+(*) [Common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)  
+(**) [Common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)  
 ## Skill Resource Tests
 Tests the resources of a skill (e.g dialogs, vocabs, regex or intent resources) for completeness and workability.
 ```yaml
@@ -225,15 +223,15 @@ jobs:
       timeout: 15                               # Timeout for the test, default: 15
       branch: dev                               # Branch to use, default: branch that triggered the action
       action_branch: custom/branch              # Shared action branch to use, default: main
-      system_deps: "libfann-dev libfann2"       # Additional system dependencies (whitespace delimited) to install
-                                                # [common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)
+      system_deps: "libfann-dev libfann2"       # (*) Additional system dependencies (whitespace delimited) to install
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
-                                                # [common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)
+      pip_packages: "pytest pytest-cov"         # (**) Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
       intent_testfile: test/test_intents.yaml   # Intent test file to test against, required
       test_padatious: true                      # if to test against padatious, default: false
       test_padacioso: true                      # if to test against padacioso, default: true
 ```
+(*) [Common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)  
+(**) [Common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)  
 ## Notify Matrix on Pull Request
 ```yaml
 name: Notify Matrix Chat
