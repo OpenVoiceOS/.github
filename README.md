@@ -224,7 +224,7 @@ jobs:
       pip_packages: "pytest pytest-cov"         # Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
                                                 # default: "pytest pytest-cov mock ovos-core[skills]>=0.0.7"
       skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
-      skill_location: "skill"                   # Skill location relative to the root (can usually be omitted)
+      skill_location: "skill"                   # Skill location relative to the root (can usually be omitted, used if the skill is not located in the base folder)
 ```
 ## Skill Resource Tests
 Tests the resources of a skill (e.g dialogs, vocabs, regex or intent resources) for completeness and workability.

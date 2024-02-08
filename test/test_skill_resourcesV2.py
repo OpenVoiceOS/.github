@@ -146,6 +146,7 @@ class TestSkillIntents(unittest.TestCase):
         cls.regex = set(skill_resources['regex'])
 
         cls.valid_intents = valid_intents
+        cls.intents = set(valid_intents["en-us"].keys())
     
     @classmethod
     def tearDownClass(cls) -> None:
