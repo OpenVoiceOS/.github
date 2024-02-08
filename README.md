@@ -34,8 +34,10 @@ jobs:
       changelog_file: CHANGELOG.md              # use if the changlog file has a special name, default: CHANGELOG.md
 ```
 ## Propose and Publish Stable (Build,Minor,Major) Release
-Strategy: 2-fold  
+Strategy: 2-staged  
 *Proposal (prepares bump and pull requests to testing/stable)*  
+This creates a pull request to the appropriate branch.  
+On merge, the (shared) publish action is triggered. (no extra repo workflow needed)
 ```yaml
 name: Propose Stable Build
 on:
@@ -57,28 +59,6 @@ jobs:
       version_file: ovos_core/version.py        # File location of the version file, default: version.py
       release_type: ${{inputs.release_type}}    # build, minor, major
       changelog_file: ChAnGeLoG.md              # if the changlog file has a special name, default: CHANGELOG.md
-```
-*Publishing*  
-```yaml
-name: Publish Stable Build
-on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        type: choice
-        options:
-          - "patch"
-          - "minor"
-          - "major"
-
-jobs:
-  build_and_publish:
-    uses: openvoiceos/.github/.github/workflows/publish_stable_release.yml@main
-    secrets: inherit
-    with:
-      python_version: "3.10"
-      release_type: ${{inputs.release_type}}
-      changelog_file: ChAnGeLoG.md
 ```
 ## Propose translatios
 Introduce a new language localisation by proposing a translation via pull request. (creating new branch staging/translation_xx-xx)
