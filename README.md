@@ -202,7 +202,7 @@ jobs:
       action_branch: custom/branch              # Shared action branch to use, default: main
       system_deps: "libfann-dev libfann2"       # (*) Additional system dependencies (whitespace delimited) to install
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # (**) Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
+      pip_packages: "pytest pytest-cov"         # (**) Additional python packages (whitespace delimited) to install'
       skill_id: "ovos-skill-x.openvoiceos"      # Skill id of the testskill, required
       skill_location: "skill"                   # Skill location relative to the root (can usually be omitted, used if the skill is not located in the base folder)
 ```
@@ -225,7 +225,7 @@ jobs:
       action_branch: custom/branch              # Shared action branch to use, default: main
       system_deps: "libfann-dev libfann2"       # (*) Additional system dependencies (whitespace delimited) to install
       python_matrix: '["3.8", "3.9", "3.10"]'   # Python version matrix to use, default: '["3.8", "3.9", "3.10", "3.11"]'
-      pip_packages: "pytest pytest-cov"         # (**) Python packages (whitespace delimited) to install instead of pip_skill_tests.txt'
+      pip_packages: "pytest pytest-cov"         # (**) Additional python packages (whitespace delimited) to install
       intent_testfile: test/test_intents.yaml   # Intent test file to test against, required
       test_padatious: true                      # if to test against padatious, default: false
       test_padacioso: true                      # if to test against padacioso, default: true
