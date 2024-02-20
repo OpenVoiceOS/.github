@@ -27,7 +27,7 @@ The usage of `types` will automate the versioning and labelling of the pull requ
   - `test`: Adding missing tests or correcting existing tests.
   - `docs`: Documentation only changes.
 
-  Scopes: (context of the change)
+  _Scopes_: (context of the change; eg. `fix(parser): ...`)
   - `config`: Changes the configuration
   - `parser`: Changes to the intent parser code,
   - ...
