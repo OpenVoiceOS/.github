@@ -1,9 +1,15 @@
 ## Conventional Commits
 We _slowly_ adopt [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to our repositories.  
-Goal is to have a consistent commit message format that can be used to streamline cd/ci or simply help understand commits better for every party involved.  
-The usage is not mandatory atm, but we encourage to use it. (maintainers will adjust the commit messages if necessary)  
+Goal is to have a consistent commit message format that can be used to 
+  - _streamline cd/ci_ or simply
+  - _help understand commits better_ for every party involved.  
 
-The usage of `types` will automate the versioning and labelling of the pull requests.
+The usage is not mandatory atm, but we encourage to use it. (maintainers will adjust the commit messages if necessary) 
+
+------------
+_Types_:  
+
+Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling of the pull requests.
   - `fix`: patches a bug in your codebase. This correlates with _**PATCH**_ in Semantic Versioning.
   - `feat`: introduces a new feature to the codebase. This correlates with _**MINOR**_ in Semantic Versioning.
   - BREAKING CHANGE: A commit that has a _footer_ `BREAKING CHANGE:`, or _appends a `!`_ after the type/scope, introduces a breaking API change. This correlates with _**MAJOR**_ in Semantic Versioning. A BREAKING CHANGE can be part of commits of any type.
@@ -27,7 +33,10 @@ The usage of `types` will automate the versioning and labelling of the pull requ
   - `test`: Adding missing tests or correcting existing tests.
   - `docs`: Documentation only changes.
 
-  _Scopes_: (context of the change; eg. `fix(parser): ...`)
+---------------
+  _Scopes_:  
+  (context of the change; eg. `fix(parser): ...`)
+  
   - `config`: Changes the configuration
   - `parser`: Changes to the intent parser code,
   - ...
@@ -42,7 +51,7 @@ The usage of `types` will automate the versioning and labelling of the pull requ
   - `resources`: Changes to the resource files,
   - `release`: Everything related to the release process
 
-
+--------------
 ## Premises
   - The `main` branch is the stable branch.  
   - The `dev` branch is the development branch.  
@@ -55,6 +64,7 @@ The usage of `types` will automate the versioning and labelling of the pull requ
   - `setup.py`: To fully adopt semver, the version number created by the setup has to be compliant: `x.x.x-alpha` (former alpha versions can't be used anymore)
   - add `main` branch protection rules
 
+------------
 ## Workflows/Actions
 **You can also find the implementation of the workflows in the [`skill-template-repo`](https://github.com/OpenVoiceOS/skill-template-repo)**
 
