@@ -14,16 +14,18 @@ The usage of `types` will automate the versioning and labelling of the pull requ
 
     BREAKING CHANGE: use JavaScript features not available in Node 6.
     ```
-  Other types that create a alpha release - if not breaking:
+  Other _types_ that create a alpha release - if not breaking:
   - `build`: Changes that affect the build system or external dependencies.
-  - `ci`: Changes to CI configuration files and scripts.
   - `chore`: Changes which don’t change source code or tests e.g. changes to the build process, auxiliary tools, libraries.
-  - `docs`: Documentation only changes.
   - `perf`: A code change that improves performance.
   - `refactor`: A code change that neither fixes a bug nor adds a feature.
   - `revert`: Revert something.
+
+  _Types_ that don't get a release:
+  - `ci`: Changes to CI configuration files and scripts.
   - `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc).
   - `test`: Adding missing tests or correcting existing tests.
+  - `docs`: Documentation only changes.
 
   Scopes: (context of the change)
   - `config`: Changes the configuration
