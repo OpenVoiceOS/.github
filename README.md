@@ -44,12 +44,12 @@ The usage of `types` will automate the versioning and labelling of the pull requ
 
 
 ## Premises
-  - The `main` branch is the stable branch.
-  - The `dev` branch is the development branch.
-  - The `testing` branch is a persistent branch for testing purposes.
-
-  - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.
-  - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.
+  - The `main` branch is the stable branch.  
+  - The `dev` branch is the development branch.  
+  - The `testing` branch is a persistent branch for testing purposes.  
+---------
+  - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.  
+  - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.  
 
   TODO (per repo):
   - `setup.py`: To fully adopt semver, the version number created by the setup has to be compliant: `x.x.x-alpha` (former alpha versions can't be used anymore)
@@ -66,7 +66,8 @@ Strategy: 3-staged
   - Manually conclude testing phase, propose a stable release (PR)
   - Publishing of a stable release (on merge) and feed back the changes to the dev branch
 
-_Start release mechanism_  
+_(manual/auto)_ **Start release mechanism**  
+
 ```yaml
 name: Start release mechanism
 on:
@@ -107,8 +108,9 @@ jobs:
       subject: ${{  github.event.head_commit.message || null }}    # on push, the commit message is used as release subject
       kickoff_pr: true                                             # if the release process should be started with a PR to summarize and visualize, default: false
 ```
-_Start testing phase_  
-_optional: if a kickoff PR is opened, for versioning and synchronization purposes_  
+_(auto/optional)_ **Start testing phase**  
+
+_If a kickoff PR is opened, for versioning and synchronization purposes_  
 _(if no PR is used, the testing phase starts right away)_  
 ```yaml
 name: Start Testing Phase
@@ -128,7 +130,8 @@ jobs:
       version_file: ovos_testpkg/version.py       # the file containing the version number
       subject: ${{ github.event.pull_request.title }}
 ```
-_Conclude testing phase_  
+_(manual)_ **Conclude testing phase**  
+
 _After the testing phase, a PR is opened to propose the stable release_  
 ```yaml
 name: Conclude testing phase
@@ -143,7 +146,8 @@ jobs:
       action_branch: shared_actions1              # Shared action branch to use, default: main
       python_version: "3.10"                      # the python version to use
 ```
-_Publishing stable release_  
+_(auto)_ **Publishing stable release**  
+
 ```yaml
 name: Publish Stable Release
 
