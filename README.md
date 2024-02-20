@@ -1,65 +1,168 @@
+## Conventional Commits
+We _slowly_ adopt [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) to our repositories.  
+Goal is to have a consistent commit message format that can be used to streamline cd/ci or simply help understand commits better for every party involved.  
+The usage is not mandatory atm, but we encourage to use it. (maintainers will adjust the commit messages if necessary)  
+
+The usage of `types` will automate the versioning and labelling of the pull requests.
+  - `fix`: patches a bug in your codebase. This correlates with _**PATCH**_ in Semantic Versioning.
+  - `feat`: introduces a new feature to the codebase. This correlates with _**MINOR**_ in Semantic Versioning.
+  - BREAKING CHANGE: A commit that has a _footer_ `BREAKING CHANGE:`, or _appends a `!`_ after the type/scope, introduces a breaking API change. This correlates with _**MAJOR**_ in Semantic Versioning. A BREAKING CHANGE can be part of commits of any type.
+    
+    Example (usage of _!_ and _footer_):  
+    ```
+    chore!: drop support for Node 6
+
+    BREAKING CHANGE: use JavaScript features not available in Node 6.
+    ```
+  Other types that create a alpha release - if not breaking:
+  - `build`: Changes that affect the build system or external dependencies.
+  - `ci`: Changes to CI configuration files and scripts.
+  - `chore`: Changes which don’t change source code or tests e.g. changes to the build process, auxiliary tools, libraries.
+  - `docs`: Documentation only changes.
+  - `perf`: A code change that improves performance.
+  - `refactor`: A code change that neither fixes a bug nor adds a feature.
+  - `revert`: Revert something.
+  - `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc).
+  - `test`: Adding missing tests or correcting existing tests.
+
+  Scopes: (context of the change)
+  - `config`: Changes the configuration
+  - `parser`: Changes to the intent parser code,
+  - ...
+  - `cli`: Changes/additions to the command line interfaces,
+  - `gui`: Changes/additions to the graphical user interface,
+  - `audio`: Changes to the audio handling,
+  - `tts`: Changes to the text-to-speech handling,
+  - `sst`: Changes to the speech-to-text handling,
+  - `nlp`: Changes to the natural language processing,
+  - `plugins`: Changes to the plugin system,
+  - `localisation`: Changes to the localisation files,
+  - `resources`: Changes to the resource files,
+  - `release`: Everything related to the release process
+
+
+## Premises
+  - The `main` branch is the stable branch.
+  - The `dev` branch is the development branch.
+  - The `testing` branch is a persistent branch for testing purposes.
+
+  - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.
+  - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.
+
+  TODO (per repo):
+  - `setup.py`: To fully adopt semver, the version number created by the setup has to be compliant: `x.x.x-alpha` (former alpha versions can't be used anymore)
+  - add `main` branch protection rules
+
 ## Workflows/Actions
 **You can also find the implementation of the workflows in the [`skill-template-repo`](https://github.com/OpenVoiceOS/skill-template-repo)**
 
-### Publish Alpha Release (example: `ovos-core`)
-```yaml
-name: Publish Alpha Build ...aX
-on:
-  push:
-    branches:
-      - dev
-    paths-ignore:
-      - 'ovos_core/version.py'
-      - 'test/**'
-      - 'examples/**'
-      - '.github/**'
-      - '.gitignore'
-      - 'LICENSE'
-      - 'CHANGELOG.md'
-      - 'MANIFEST.in'
-      - 'readme.md'
-      - 'scripts/**'
-  workflow_dispatch:
+## Release Handling (alpha/patch/minor/major versions)
+_Alpha releases are directly published without going through a test phase_
 
-jobs:
-  build_and_publish:
-    uses: openvoiceos/.github/.github/workflows/publish_alpha_release.yml@main
-    secrets: inherit
-    with:
-      branch: dev                               # Branch to use, default: branch that triggered the action
-      version_file: ovos_core/version.py        # File location of the version file, default: version.py
-      python_version: "3.8"                     # Python version (quoted) to use, default: 3.8
-      locale_folder: ovos_core/locale           # use if there are localisation files the location of the base folder, default: locale
-      update_intentfile: test/test_intents.yaml # use if there are changes to resource files, the test file to update. (ONLY USED IN SKILLS)
-      changelog_file: CHANGELOG.md              # use if the changlog file has a special name, default: CHANGELOG.md
-```
-## Propose and Publish Stable (Build,Minor,Major) Release
-Strategy: 2-staged  
-*Proposal (prepares bump and pull requests to testing/stable)*  
-This creates a pull request to the appropriate branch.  
-On merge, the (shared) publish action is triggered. (no extra repo workflow needed)
+Strategy: 3-staged  
+  - Manually propose a testing start or automatically with setting "Conventional Commits" (optionally as PR)
+  - Manually conclude testing phase, propose a stable release (PR)
+  - Publishing of a stable release (on merge) and feed back the changes to the dev branch
+
+_Start release mechanism_  
 ```yaml
-name: Propose Stable Build
+name: Start release mechanism
 on:
   workflow_dispatch:
     inputs:
       release_type:
         type: choice
         options:
+          - "alpha"
           - "patch"
           - "minor"
           - "major"
+  # Make SURE that sqashed PRs do have the PRs title as commit message !!!!!!!!
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - 'ovos_testpkg/version.py'
+      - 'test/**'
+      - 'examples/**'
+      - '.github/**'
+      - '.gitignore'
+      - 'CHANGELOG.md'
+      - 'MANIFEST.in'
+      - 'scripts/**'
 
 jobs:
-  build_and_publish:
-    uses: openvoiceos/.github/.github/workflows/propose_semver_release.yml@main
+  start_semver_release_mechanism:
+    uses: openvoiceos/.github/.github/workflows/release_semver_start.yml@feat/shared_actions1
     with:
-      branch: dev                               # Branch to use, default: branch that triggered the action
-      python_version: "3.10"                    # Python version (quoted) to use, default: 3.8
-      version_file: ovos_core/version.py        # File location of the version file, default: version.py
-      release_type: ${{inputs.release_type}}    # build, minor, major
-      changelog_file: ChAnGeLoG.md              # if the changlog file has a special name, default: CHANGELOG.md
+      branch: dev                                                  # Branch to use, default: branch that triggered the action
+      action_branch: feat/shared_actions1                          # Shared action branch to use, default: main
+      python_version: "3.10"                                       # the python version to use
+      version_file: "ovos_testpkg/version.py"                      # the file containing the version number
+      locale_folder: ovos_testpkg/locale                           # the location of the base localisation folder
+      update_intentfile: test/unittests/test_intent.yaml           # the intent file resources gets tested against
+      release_type: ${{ inputs.release_type || null }}             # if manually triggered, set a release type
+      subject: ${{  github.event.head_commit.message || null }}    # on push, the commit message is used as release subject
+      kickoff_pr: true                                             # if the release process should be started with a PR to summarize and visualize, default: false
 ```
+_Start testing phase_  
+_optional: if a kickoff PR is opened, for versioning and synchronization purposes_  
+_(if no PR is used, the testing phase starts right away)_  
+```yaml
+name: Start Testing Phase
+# only trigger on pull request closed events
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - testing
+
+jobs:
+  start_testing_phase:
+    if: (github.event.pull_request.merged == true) && (contains(github.event.pull_request.title, 'patch release') || contains(github.event.pull_request.title, 'minor release') || contains(github.event.pull_request.title, 'major release'))
+    uses: openvoiceos/.github/.github/workflows/release_semver_versioning.yml@feat/shared_actions1
+    secrets: inherit
+    with:
+      version_file: ovos_testpkg/version.py       # the file containing the version number
+      subject: ${{ github.event.pull_request.title }}
+```
+_Conclude testing phase_  
+_After the testing phase, a PR is opened to propose the stable release_  
+```yaml
+name: Conclude testing phase
+on:
+  workflow_dispatch:
+
+jobs:
+  pull_to_master:
+    uses: openvoiceos/.github/.github/workflows/release_semver_pull_master.yml@feat/shared_actions1
+    secrets: inherit
+    with:
+      action_branch: shared_actions1              # Shared action branch to use, default: main
+      python_version: "3.10"                      # the python version to use
+```
+_Publishing stable release_  
+```yaml
+name: Publish Stable Release
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - master
+
+jobs:
+  publish_stable_release:
+    if: (github.event.pull_request.merged == true) && (contains(github.event.pull_request.title, 'patch release stable') || contains(github.event.pull_request.title, 'minor release stable') || contains(github.event.pull_request.title, 'major release stable'))
+    uses: openvoiceos/.github/.github/workflows/release_semver_publish.yml@feat/shared_actions1
+    secrets: inherit
+    with:
+      action_branch: feat/shared_actions1
+      python_version: "3.10"
+      subject: ${{ github.event.pull_request.title }}
+```  
+-----------------
+
 ## Propose translatios
 Introduce a new language localisation by proposing a translation via pull request. (creating new branch staging/translation_xx-xx)
 ```yaml

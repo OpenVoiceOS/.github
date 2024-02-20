@@ -1,40 +1,41 @@
-name: Publish SemVer Build
+# This workflow will generate a distribution and upload it to PyPI
+
+name: Publish Alpha Build ...aX
 on:
   workflow_call:
-    secrets:
-      PYPI_TOKEN:
-        required: true
     inputs:
+      branch:
+        description: 'The branch to checkout and run the action in'
+        type: string
+        default: ${{ github.ref }}
       action_branch:
         description: 'The shared action branch to checkout'
         type: string
         default: main
-      release_type:
+      version_file:
+        description: 'The file location to read the version from'
         type: string
-        description: 'The type of release to make'
-        required: true
+        default: version.py
       python_version:
-        description: "Python version to use for the build process."
+        description: 'The python version to use'
         type: string
         default: "3.8"
       changelog_file:
-        description: "File to write the changelog to."
         type: string
         default: CHANGELOG.md
 
 jobs:
   build_and_publish:
-    env:
-      SOURCE_BRANCH: ${{ inputs.release_type == 'patch' && 'testing' || 'stable' }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      RELEASE_TYPE: ${{ inputs.release_type }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.SOURCE_BRANCH }}
-          fetch-depth: 0
+          ref: ${{ inputs.branch }}
           path: action/package/
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
@@ -45,42 +46,45 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{inputs.python_version}}
-      - name: Install Python Dependencies
+          python-version: ${{ inputs.python_version }}
+      - name: Increment Version
+        id: version
         run: |
-          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
-      - name: Get Version
-        run: |
-          VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
+          python action/github/scripts/bump_alpha.py
+          VERSION=$(python action/package/setup.py --version)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-      - name: Check Latest Release
-        run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
-          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-      - name: Generate Changelog
+      - name: "Generate release changelog"
         id: changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           output: action/package/${{ inputs.changelog_file }}
-          sinceTag: ${{ env.SINCE_TAG }}
-      - name: Create Release
+      - name: Push Version Change
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Increment Version to ${{ env.VERSION }}
+          repository: action/package/
+      - name: Change working directory to release
+        run: cd ${{ github.workspace }}/action/package/
+      - name: Create Pre-release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           tag: V${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           body: |
             Changes in this Release
             ${{ steps.changelog.outputs.changelog }}
+          commit: ${{ inputs.branch }}
+          prerelease: true
       - name: Install Build Tools
         run: |
           pip install --upgrade pip
           python -m pip install build wheel
       - name: Build Distribution Packages
         run: |
-          cd ${{ github.workspace }}/action/package
+          cd action/package
           python setup.py sdist bdist_wheel
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

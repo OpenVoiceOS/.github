@@ -1,0 +1,108 @@
+name: Publish SemVer Build
+on:
+  workflow_call:
+    secrets:
+      PYPI_TOKEN:
+        required: true
+    inputs:
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
+      python_version:
+        description: "Python version to use for the build process."
+        type: string
+        default: "3.8"
+      changelog_file:
+        description: "File to write the changelog to."
+        type: string
+        default: CHANGELOG.md
+      subject:
+        description: 'Subject title of the push/pull-request event to parse the release type.'
+        type: string
+        required: true
+
+jobs:
+  build_and_publish:
+    env:
+      SOURCE_BRANCH: 'master'
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: set up release type
+        run: |
+          RELEASE_TYPE=$(echo ${{ inputs.subject }} | grep -oP '(patch|minor|major)')
+          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_BRANCH }}
+          fetch-depth: 0
+          path: action/package/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{inputs.python_version}}
+      - name: Install Python Dependencies
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+      - name: Get Version
+        run: |
+          VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Check Latest Release
+        run: |
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
+          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
+      - name: Bump Changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          output: action/package/${{ inputs.changelog_file }}
+      - name: create release changelog (cropped)
+        id: changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          sinceTag: ${{ env.SINCE_TAG }}
+      # pull changes in the release process back to dev
+      - name: Create Pull Request to dev
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GH_PAT }}
+          path: action/package/
+          commit-message: "ci: merge testing commits to dev"
+          title: "ci: merge testing commits (${{ env.VERSION }}) to dev"
+          branch: dev
+          base: testing
+          draft: false
+          assignees: ${{ github.actor }}
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GH_PAT }}
+          tag: V${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          body: |
+            Changes in this Release
+            ${{ steps.changelog.outputs.changelog }}
+      - name: Install Build Tools
+        run: |
+          pip install --upgrade pip
+          python -m pip install build wheel
+      - name: Build Distribution Packages
+        run: |
+          cd ${{ github.workspace }}/action/package
+          python setup.py sdist bdist_wheel
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{secrets.PYPI_TOKEN}}
+          packages-dir: action/package/dist/

@@ -7,3 +7,4 @@ portaudio19-dev
 libpulse-dev
 libicu-dev
 pkg-config
+libenchant-2-2

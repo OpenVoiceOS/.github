@@ -1,0 +1,314 @@
+name: Kickoff Testing Release
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        default: dev
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
+      python_version:
+        description: 'The python version to use'
+        type: string
+        default: "3.8"
+      version_file:
+        description: 'The file location to read the version from'
+        type: string
+        default: version.py
+      release_type:
+        type: string
+        description: 'The type of release to make'
+      subject:
+        type: string
+        description: 'Subject title of the push/pull request event to parse the release type.'
+        required: false
+      kickoff_pr:
+        type: boolean
+        description: 'Whether to create a PR to mark the start of the testing phase or not'
+        default: false
+      locale_folder:
+        type: string
+        description: 'The folder location of the locale files'
+        required: false
+      update_intentfile:
+        type: string
+        description: 'The file location of the intent test file to update'
+        required: false
+
+jobs:
+  parse_conventional_commits:
+    outputs:
+      release_type: ${{ steps.parse.outputs.release_type }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Package Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          path: action/package/
+          fetch-depth: 0
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - name: Set up python ${{ inputs.python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Install Common System Dependencies
+        run: |
+          sudo apt update
+          xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+      - name: Install Common Python Requirements
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+      - name: Parse Conventional Commits
+        id: parse
+        run: |
+          export TITLE=${{ inputs.subject }}
+          cd ${{ github.workspace }}/action/github/scripts
+          RELEASE_TYPE=$(python scripts/parse_semver_release.py)
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+  autotranslate:
+    if: ${{ inputs.locale_folder != null }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      API_KEY: ${{secrets.DL_API_KEY}} 
+      LOCALE_FOLDER: ${{ github.workspace }}/action/package/${{ inputs.locale_folder }}
+      INTENT_TEST_FILE: ${{ github.workspace }}/action/package/${{ inputs.update_intentfile }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+          path: action/package/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          working-directory: action/package/
+          filters: |
+            us_specific:
+              - '${{ inputs.locale_folder }}/en-us/**'
+              - '${{ inputs.locale_folder }}/../dialog/en-us/**'
+              - '${{ inputs.locale_folder }}/../vocab/en-us/**'
+            general:
+              - '${{ inputs.locale_folder }}/**'
+              - '${{ inputs.locale_folder }}/../dialog/**'
+              - '${{ inputs.locale_folder }}/../vocab/**'
+      - name: Setup Python
+        if: steps.filter.outputs.us_specific == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Install Python Requirements
+        if: steps.filter.outputs.us_specific == 'true'
+        run: |
+          python -m pip install -r action/github/requirements/pip_translation.txt
+      - name: Pull latest changes
+        if: steps.filter.outputs.us_specific == 'true'
+        run: |
+          git pull origin ${{ inputs.branch }}
+      - name: Auto Translate
+        if: steps.filter.outputs.us_specific == 'true'
+        run: |
+          python action/github/scripts/translate.py
+      - name: Commit autotranslation to ${{ inputs.branch }}
+        if: steps.filter.outputs.us_specific == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci(localisation): autotranslate common languages"
+          repository: action/package/
+          branch: ${{ inputs.branch }}
+      - name: update resource test file
+        if: steps.filter.outputs.general == 'true' && ${{ inputs.update_intentfile }}
+        run: |
+          python action/github/scripts/update_intent_testfile.py
+      - name: Commit resource test file changes to ${{ inputs.branch }}
+        if: steps.filter.outputs.general == 'true' && ${{ inputs.update_intentfile }}'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "ci(localisation): update resource test file"
+          repository: action/package/
+          branch: ${{ inputs.branch }}
+  # alpha release
+  alpha_release:
+    needs: parse_conventional_commits
+    if: ${{ needs.parse_conventional_commits.outputs.release_type == 'alpha' || inputs.release_type == 'alpha' }}
+    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
+    secrets: inherit
+    with:
+      branch: ${{ inputs.branch }}
+      action_branch: ${{ inputs.action_branch }}
+      version_file: ${{ inputs.version_file }}
+      python_version: ${{ inputs.python_version }}
+      locale_folder: ${{ inputs.locale_folder }}
+  # >= patch release (auto)
+  kickoff_testing_auto:
+    needs: parse_conventional_commits
+    if: ${{ needs.parse_conventional_commits.outputs.release_type != 'alpha' && needs.parse_conventional_commits.outputs.release_type != 'No semver release.'}}
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: 'testing'
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      RELEASE_TYPE: ${{ needs.parse_conventional_commits.outputs.release_type }}
+    steps:
+      - name: Checkout Package Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          path: action/package/
+          fetch-depth: 0
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - name: Set up python ${{ inputs.python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Install Common Python Requirements
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+      - name: Check Latest Release
+        if: ${{ inputs.kickoff_pr }}
+        run: |
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
+          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
+      - name: create changelog
+        id: changelog
+        if: ${{ inputs.kickoff_pr }}
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          sinceTag: ${{ env.SINCE_TAG }}
+      - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
+        if: ${{ inputs.kickoff_pr }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GH_PAT }}
+          path: action/package/
+          commit-message: "ci(release): kickoff testing QA phase"
+          title: "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)"
+          body: |
+            This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.
+            Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
+
+            (If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)
+
+            Included changes:
+            ${{ steps.changelog.outputs.changelog }}
+          branch: ${{ env.TARGET_BRANCH }}
+          base: ${{ inputs.branch }}
+          draft: false
+          assignees: ${{ github.actor }}
+      - name: Push to testing branch
+        if: ${{ !inputs.kickoff_pr }}
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git checkout ${{ env.TARGET_BRANCH }}
+          git pull origin ${{ env.TARGET_BRANCH }}
+          git rebase ${{ inputs.branch }}
+          git push origin ${{ env.TARGET_BRANCH }}
+      - name: Bump Version
+        if: ${{ !inputs.kickoff_pr }}
+        uses: ./action/github/.github/workflows/release_semver_versioning.yml
+        with:
+          release_type: ${{ env.RELEASE_TYPE }}
+          version_file: ${{ inputs.version_file }}
+      - name: Notify Matrix Room
+        uses: ./action/github/.github/workflows/notify_testing_matrix.yml
+        with:
+          kickoff_pr: ${{ !inputs.kickoff_pr }}
+          subject: ${{ inputs.subject }}
+          release_type: ${{ env.RELEASE_TYPE }}
+  # >= patch release (manual)
+  kickoff_testing_manual:
+    if: ${{ inputs.release_type != 'alpha' && inputs.release_type != null }}
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: 'testing'
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      RELEASE_TYPE: ${{ inputs.release_type }}
+    steps:
+      - name: Checkout Package Repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          path: action/package/
+          fetch-depth: 0
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - name: Set up python ${{ inputs.python_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Install Common Python Requirements
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+      - name: Check Latest Release
+        if: ${{ inputs.kickoff_pr }}
+        run: |
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
+          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
+      - name: create changelog
+        id: changelog
+        if: ${{ inputs.kickoff_pr }}
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          sinceTag: ${{ env.SINCE_TAG }}
+      - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
+        uses: peter-evans/create-pull-request@v5
+        if: ${{ inputs.kickoff_pr }}
+        with:
+          token: ${{ secrets.GH_PAT }}
+          path: action/package/
+          commit-message: "ci: kickoff testing QA phase"
+          title: "ci: kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)"
+          body: |
+            This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.
+            Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
+
+            (If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)
+          branch: ${{ env.TARGET_BRANCH }}
+          base: ${{ inputs.branch }}
+          draft: false
+          assignees: ${{ github.actor }}
+      - name: Push to testing branch
+        if: ${{ !inputs.kickoff_pr }}
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git checkout ${{ env.TARGET_BRANCH }}
+          git pull origin ${{ env.TARGET_BRANCH }}
+          git rebase ${{ inputs.branch }}
+          git push origin ${{ env.TARGET_BRANCH }}
+      - name: Bump Version
+        if: ${{ !inputs.kickoff_pr }}
+        uses: ./action/github/.github/workflows/release_semver_versioning.yml
+        with:
+          release_type: ${{ env.RELEASE_TYPE }}
+          version_file: ${{ inputs.version_file }}
+      - name: Notify Matrix Room
+        uses: ./action/github/.github/workflows/notify_testing_matrix.yml
+        with:
+          kickoff_pr: ${{ !inputs.kickoff_pr }}
+          release_type: ${{ env.RELEASE_TYPE }}

@@ -1,0 +1,83 @@
+name: Declare Stable Release (Proposal)
+on:
+  workflow_call:
+    inputs:
+      action_branch:
+        description: 'The shared action branch to checkout'
+        type: string
+        default: main
+      python_version:
+        description: 'The python version to use'
+        type: string
+        default: "3.8"
+      changelog_file:
+        type: string
+        description: 'The file to write the changelog to'
+        default: CHANGELOG.md  
+
+jobs:
+  propose_stable_release:
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH: 'master'
+      GITHUB_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: testing
+          path: action/package/
+      - name: Checkout Scripts Repo
+        uses: actions/checkout@v4
+        with:
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
+      - name: Install Common System Dependencies
+        run: |
+          sudo apt update
+          xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{inputs.python_version}}
+      - name: Install Python Dependencies
+        run: |
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+      - name: Get Version
+        run: |
+          VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+      - name: Parse Release Type
+        run: |
+          RELEASE_TYPE=$(python ${{ github.workspace }}/action/github/scripts/parse_semver_release.py)
+          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+      - name: Get Start of the Version Cycle
+        run: |
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
+          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
+      - name: Bump Changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          output: action/package/${{ inputs.changelog_file }}
+      - name: create release changelog (cropped)
+        id: changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          sinceTag: ${{ env.SINCE_TAG }}
+      - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GH_PAT }}
+          path: action/package/
+          commit-message: "ci(release): declare ${{ env.VERSION }} stable"
+          title: "ci(release): declare ${{ env.RELEASE_TYPE }} release stable (${{ env.VERSION }})"
+          body: |
+            Changes in this Release
+            ${{ steps.changelog.outputs.changelog }}
+          branch: ${{ env.TARGET_BRANCH }}
+          base: testing
+          draft: false
+          assignees: ${{ github.actor }}

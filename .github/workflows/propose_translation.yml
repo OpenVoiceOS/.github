@@ -60,11 +60,11 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GH_PAT }}
         path: action/package/
         commit-message: autotranslate
         author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-        title: Proposed ${{ inputs.language }} Translations
+        title: "fix(localisation): Add ${{ inputs.language }} language"
         body: Translations for review
         labels: translation
         branch: staging/translation_${{ inputs.language }}
