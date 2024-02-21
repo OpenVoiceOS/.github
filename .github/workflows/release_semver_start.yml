@@ -70,7 +70,7 @@ jobs:
         id: parse
         run: |
           export TITLE="${{ inputs.subject }}"
-          cd ${{ github.workspace }}/action/github/scripts
+          cd ${{ github.workspace }}/action/github
           RELEASE_TYPE=$(python scripts/parse_semver_release.py)
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
   autotranslate:
