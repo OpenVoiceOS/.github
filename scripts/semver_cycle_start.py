@@ -50,7 +50,8 @@ def in_cycle(v: semver.Version) -> bool:
 
 releases = repo.get_releases()
 if not releases:
-    raise Exception("No releases found")
+    print("0.0.0")
+    exit(0)
 
 for id, release in enumerate(releases):
     version = get_semver(release.tag_name)
