@@ -69,7 +69,7 @@ jobs:
       - name: Parse Conventional Commits
         id: parse
         run: |
-          export TITLE=${{ inputs.subject }}
+          export TITLE="${{ inputs.subject }}"
           cd ${{ github.workspace }}/action/github/scripts
           RELEASE_TYPE=$(python scripts/parse_semver_release.py)
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
