@@ -61,7 +61,7 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
   - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.  
 
   TODO (per repo):
-  - `setup.py`: To fully adopt semver, the version number created by the setup has to be compliant: `x.x.x-alpha` (former alpha versions can't be used anymore)
+  - `setup.py`: setuptools cant cope with semver compliance: `x.x.x-alpha...` stays `x.x.xax` for now
   - add `main` branch protection rules
 
 ------------

@@ -1,14 +1,23 @@
+import re
+from os import environ
+
 import pccc
 import semver
-from os import environ
 
 """
 translates a conventional commit title/message into a semver version
 """
 
-TITLE = environ.get("TITLE")
-BODY = environ.get("BODY")
-VERSION = environ.get("VERSION")
+
+def get_version():
+    # note: this is a PEP 440 compliant version, so alpha versions come in "1.0.0a1"
+    version = environ.get("VERSION", "")
+    match = re.match(r"(\d+\.\d+\.\d+)([aA-zZ].*)", )
+    if match:
+        return f"{match.group(1)}-{match.group(2)}"
+    else:
+        return version
+
 
 def semver_from_cc():
     ccr = pccc.ConventionalCommitRunner()
@@ -47,7 +56,9 @@ def semver_from_version():
     elif version.major != 0:
         return "major"
     
-    
+TITLE = environ.get("TITLE")
+BODY = environ.get("BODY")
+VERSION = get_version()
 
 if VERSION:
     release = semver_from_version()
