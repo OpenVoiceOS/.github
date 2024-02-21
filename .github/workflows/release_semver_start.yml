@@ -154,7 +154,6 @@ jobs:
       action_branch: ${{ inputs.action_branch }}
       version_file: ${{ inputs.version_file }}
       python_version: ${{ inputs.python_version }}
-      locale_folder: ${{ inputs.locale_folder }}
   # >= patch release (auto)
   kickoff_testing_auto:
     needs: parse_conventional_commits
