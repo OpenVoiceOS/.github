@@ -197,7 +197,6 @@ jobs:
       - name: Create Branch (if necessary)
         run: |
           cd ${{ github.workspace }}/action/package/
-          git fetch --unshallow origin ${{ inputs.branch }}
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
           INITIAL_COMMIT=$(git rev-list --max-parents=0 ${{ inputs.branch }})
           if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
@@ -298,7 +297,6 @@ jobs:
       - name: Create Branch (if necessary)
         run: |
           cd ${{ github.workspace }}/action/package/
-          git fetch --unshallow origin ${{ inputs.branch }}
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
           INITIAL_COMMIT=$(git rev-list --max-parents=0 ${{ inputs.branch }})
           if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
