@@ -133,11 +133,11 @@ jobs:
           repository: action/package/
           branch: ${{ inputs.branch }}
       - name: update resource test file
-        if: steps.filter.outputs.general == 'true' && ${{ inputs.update_intentfile }}
+        if: steps.filter.outputs.general == 'true' && inputs.update_intentfile != ''
         run: |
           python action/github/scripts/update_intent_testfile.py
       - name: Commit resource test file changes to ${{ inputs.branch }}
-        if: steps.filter.outputs.general == 'true' && ${{ inputs.update_intentfile }}'
+        if: steps.filter.outputs.general == 'true' && inputs.update_intentfile != ''
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci(localisation): update resource test file"
