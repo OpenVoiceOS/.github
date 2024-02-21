@@ -158,6 +158,8 @@ jobs:
   kickoff_testing_auto:
     needs: parse_conventional_commits
     if: ${{ needs.parse_conventional_commits.outputs.release_type != 'alpha' && needs.parse_conventional_commits.outputs.release_type != 'No semver release.'}}
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: 'testing'
@@ -258,6 +260,8 @@ jobs:
   # >= patch release (manual)
   kickoff_testing_manual:
     if: ${{ inputs.release_type != 'alpha' && inputs.release_type != null }}
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: 'testing'
