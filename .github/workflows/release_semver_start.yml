@@ -45,6 +45,7 @@ jobs:
   parse_conventional_commits:
     outputs:
       release_type: ${{ steps.parse.outputs.release_type }}
+      was_pr: ${{ steps.parse.outputs.was_pr }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Package Repo
@@ -70,6 +71,16 @@ jobs:
       - name: Install Common Python Requirements
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+      # check if the last commit was due to a PR merge (needed below)
+      - name: PR merge?
+        run: |
+          LAST_COMMIT_SHA=$(git rev-parse HEAD)
+          PR_NUMBER=$(curl --silent --show-error --header "Authorization: Bearer ${{ secrets.GH_PAT }}" "https://api.github.com/repos/${{ github.repository }}/commits/${LAST_COMMIT_SHA}/pulls" | jq '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            echo "was_pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "was_pr=false" >> $GITHUB_OUTPUT
+          fi
       - name: Parse Conventional Commits
         id: parse
         run: |
@@ -79,8 +90,9 @@ jobs:
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
   autotranslate:
     needs: parse_conventional_commits
-    if: ${{ inputs.locale_folder != '' && needs.parse_conventional_commits.outputs.release_type != 'testing' }}
     runs-on: ubuntu-latest
+    outputs:
+      translated: ${{ steps.changes.outputs.translated }}
     permissions:
       contents: write
     env:
@@ -101,6 +113,7 @@ jobs:
           ref: ${{ inputs.action_branch }}
           path: action/github/
       - uses: dorny/paths-filter@v2
+        if: ${{ inputs.locale_folder != '' }}
         id: filter
         with:
           working-directory: action/package/
@@ -130,24 +143,41 @@ jobs:
         if: steps.filter.outputs.general == 'true'
         run: |
           python action/github/scripts/translate.py
+      # 0 if no changes were made, 1 if changes were made
+      - name: changes made?
+        id: changes
+        run: |
+          git diff --exit-code
+          echo "translated=$?" >> $GITHUB_OUTPUT
       - name: Commit autotranslation to ${{ inputs.branch }}
-        if: steps.filter.outputs.general == 'true'
+        if: steps.changes.outputs.translated == '1'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci(localisation): autotranslate common languages"
           repository: action/package/
           branch: ${{ inputs.branch }}
       - name: update resource test file
-        if: steps.filter.outputs.general == 'true' && inputs.update_intentfile != ''
+        if: steps.changes.outputs.translated == '1' && inputs.update_intentfile != ''
         run: |
           python action/github/scripts/update_intent_testfile.py
       - name: Commit resource test file changes to ${{ inputs.branch }}
-        if: steps.filter.outputs.general == 'true' && inputs.update_intentfile != ''
+        if: steps.changes.outputs.translated == '1' && inputs.update_intentfile != ''
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "ci(localisation): update resource test file"
           repository: action/package/
           branch: ${{ inputs.branch }}
+  # alpha release
+  alpha_release:
+    needs: parse_conventional_commits
+    if: (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) }}) || (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type) }}) || (${{ inputs.release_type == 'alpha' }}) || (${{ contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type) }})
+    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
+    secrets: inherit
+    with:
+      action_branch: ${{ inputs.action_branch }}
+      version_file: ${{ inputs.version_file }}
+      python_version: ${{ inputs.python_version }}
+      changelog_file: ${{ inputs.changelog_file }}
   # >= patch release
   kickoff_testing:
     needs: parse_conventional_commits
@@ -253,7 +283,9 @@ jobs:
           subject: ${{ inputs.subject }}
           release_type: ${{ env.RELEASE_TYPE }}
   # testing release
+  # note: autotranslate as dependency requires the job running without restrictions!
   cherry_pick_testing:
+    needs: ["parse_conventional_commits", "autotranslate"]
     if: ${{ needs.parse_conventional_commits.outputs.release_type == 'testing' }}
     runs-on: ubuntu-latest
     permissions:
@@ -272,22 +304,25 @@ jobs:
           fetch-depth: 0
           ref: testing
           path: action/package/testing/
-      - name: Cherry pick last commit from dev
+      # based on the workflow run, set the number of commits to cherry pick
+      # testing PRs/pushes get an alpha release for sure
+      - name: set commits num to cherry pick
+        run: |
+          COMMITS = 1
+          if [ "${{ needs.parse_conventional_commits.outputs.was_pr }}" == "true" ]; then
+            COMMITS = $((COMMITS + 2))
+          else
+            COMMITS = $((COMMITS + 1))
+          fi
+          if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
+            COMMITS = $((COMMITS + 1))
+          fi
+          echo "COMMITS=${COMMITS}" >> $GITHUB_ENV
+      - name: Cherry pick n last commit from dev
         run: |
           cd action/package/testing/
-          git cherry-pick $(git -C ../dev rev-parse HEAD)
+          git cherry-pick $(git -C ../dev log -n ${{ env.COMMITS }} --pretty=format:"%H")
       - name: Push changes to testing branch
         run: |
           cd action/package/testing/
           git push origin testing
-  # alpha release
-  alpha_release:
-    needs: parse_conventional_commits
-    if: (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) }}) || (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type) }}) || (${{ inputs.release_type == 'alpha' }}) || (${{ contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type) }})
-    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
-    secrets: inherit
-    with:
-      action_branch: ${{ inputs.action_branch }}
-      version_file: ${{ inputs.version_file }}
-      python_version: ${{ inputs.python_version }}
-      changelog_file: ${{ inputs.changelog_file }}
