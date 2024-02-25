@@ -36,6 +36,10 @@ on:
         type: string
         description: 'The file location of the intent test file to update'
         required: false
+      changelog_file:
+        type: string
+        description: 'The file location of the changelog'
+        default: CHANGELOG.md
 
 jobs:
   parse_conventional_commits:
@@ -285,7 +289,7 @@ jobs:
     uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
     secrets: inherit
     with:
-      branch: ${{ inputs.branch }}
       action_branch: ${{ inputs.action_branch }}
       version_file: ${{ inputs.version_file }}
       python_version: ${{ inputs.python_version }}
+      changelog_file: ${{ inputs.changelog_file }}
