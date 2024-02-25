@@ -1,0 +1,65 @@
+name: 'Bump Version (after testing QA started)'
+description: 'This action bumps the version after the testing QA phase has started'
+inputs:
+  action_branch:
+    description: 'The shared action branch to checkout'
+    required: false
+    default: 'main'
+  python_version:
+    description: 'The python version to use'
+    required: false
+    default: '3.8'
+  version_file:
+    description: 'The file location to read the version from'
+    required: false
+    default: 'version.py'
+  changelog_file:
+    description: 'The file location of the changelog'
+    required: false
+    default: 'CHANGELOG.md'
+  subject:
+    description: 'Subject title of the push/pull-request event to parse the release type.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: set up release type
+      shell: bash
+      run: |
+        RELEASE_TYPE=$(echo "${{ inputs.subject }}" | grep -oP '(patch|minor|major)')
+        echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: dev
+        fetch-depth: 0
+    - name: Increment Version
+      shell: bash
+      run: |
+        python action/github/scripts/bump_${{ env.RELEASE_TYPE }}.py
+        VERSION=$(python action/package/setup.py --version)
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
+    - name: Push Version Change
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Increment Version to ${{ env.VERSION }}
+        repository: action/package/
+    - name: Rebase testing onto dev
+      shell: bash
+      run: |
+        git checkout testing
+        git rebase dev
+        git push origin testing --force
+    - name: Notify Matrix Room
+      uses: ./action/github/.github/actions/notify_testing_matrix
+      with:
+        kickoff_pr: false
+        release_type: ${{ env.RELEASE_TYPE }}
+    - name: alpha_release
+      uses: ./action/github/.github/actions/release_alpha
+      with:
+        action_branch: ${{ inputs.action_branch }}
+        python_version: ${{ inputs.python_version }}
+        version_file: ${{ inputs.version_file }}
+        changelog_file: ${{ inputs.changelog_file }}

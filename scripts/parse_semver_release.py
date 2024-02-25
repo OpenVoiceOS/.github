@@ -35,6 +35,8 @@ def semver_from_cc():
         return "major"
     elif ccr.header.get("type") == "feat":
         return "minor"
+    elif ccr.header.get("type") == "fix" and ccr.header.get("scope") == "testing":
+        return "testing"
     elif ccr.header.get("type") == "fix":
         return "patch"
     else:

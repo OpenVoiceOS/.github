@@ -74,7 +74,8 @@ jobs:
           RELEASE_TYPE=$(python scripts/parse_semver_release.py)
           echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
   autotranslate:
-    if: ${{ inputs.locale_folder != null }}
+    needs: parse_conventional_commits
+    if: ${{ inputs.locale_folder != '' && needs.parse_conventional_commits.outputs.release_type != 'testing' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,21 +144,10 @@ jobs:
           commit_message: "ci(localisation): update resource test file"
           repository: action/package/
           branch: ${{ inputs.branch }}
-  # alpha release
-  alpha_release:
+  # >= patch release
+  kickoff_testing:
     needs: parse_conventional_commits
-    if: ${{ needs.parse_conventional_commits.outputs.release_type == 'alpha' || inputs.release_type == 'alpha' }}
-    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
-    secrets: inherit
-    with:
-      branch: ${{ inputs.branch }}
-      action_branch: ${{ inputs.action_branch }}
-      version_file: ${{ inputs.version_file }}
-      python_version: ${{ inputs.python_version }}
-  # >= patch release (auto)
-  kickoff_testing_auto:
-    needs: parse_conventional_commits
-    if: ${{ needs.parse_conventional_commits.outputs.release_type != 'alpha' && needs.parse_conventional_commits.outputs.release_type != 'No semver release.'}}
+    if: (contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) || (inputs.release_type != 'alpha' && inputs.release_type != ''))
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -257,101 +247,45 @@ jobs:
           kickoff_pr: ${{ !inputs.kickoff_pr }}
           subject: ${{ inputs.subject }}
           release_type: ${{ env.RELEASE_TYPE }}
-  # >= patch release (manual)
-  kickoff_testing_manual:
-    if: ${{ inputs.release_type != 'alpha' && inputs.release_type != null }}
+  # testing release
+  cherry_pick_testing:
+    if: ${{ needs.parse_conventional_commits.outputs.release_type == 'testing' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-    runs-on: ubuntu-latest
-    env:
-      TARGET_BRANCH: 'testing'
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-      RELEASE_TYPE: ${{ inputs.release_type }}
     steps:
-      - name: Checkout Package Repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
-          path: action/package/
           fetch-depth: 0
-      - name: Checkout Scripts Repo
-        uses: actions/checkout@v4
-        with:
-          repository: OpenVoiceOS/.github
-          ref: ${{ inputs.action_branch }}
-          path: action/github/
-      - name: Set up python ${{ inputs.python_version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ inputs.python_version }}
-      - name: Install Common Python Requirements
-        run: |
-          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+          ref: dev
+          path: action/package/dev/
       - name: Set up Git Authentication
         run: |
-          cd ${{ github.workspace }}/action/package/ 
+          cd action/package/dev/
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}
-      - name: Check Latest Release
-        if: ${{ inputs.kickoff_pr }}
+      - name: Checkout testing branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: testing
+          path: action/package/testing/
+      - name: Cherry pick last commit from dev
         run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
-          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-      # if there is no testing branch, create one from the tag of the latest release
-      - name: Create Branch (if necessary)
+          cd action/package/testing/
+          git cherry-pick $(git -C ../dev rev-parse HEAD)
+      - name: Push changes to testing branch
         run: |
-          cd ${{ github.workspace }}/action/package/
-          TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
-          INITIAL_COMMIT=$(git rev-list --max-parents=0 ${{ inputs.branch }})
-          if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
-            if [ "$SINCE_TAG" == "0.0.0" ]; then
-              git checkout -b ${{ env.TARGET_BRANCH }} $INITIAL_COMMIT
-            else
-              git checkout -b ${{ env.TARGET_BRANCH }} tags/${{ env.SINCE_TAG }}
-            fi            
-            git push origin ${{ env.TARGET_BRANCH }} --force
-            git checkout ${{ inputs.branch }}
-          fi
-      - name: create changelog
-        id: changelog
-        if: ${{ inputs.kickoff_pr }}
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          sinceTag: ${{ env.SINCE_TAG }}
-      - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
-        uses: peter-evans/create-pull-request@v5
-        if: ${{ inputs.kickoff_pr }}
-        with:
-          token: ${{ secrets.GH_PAT }}
-          path: action/package/
-          commit-message: "ci: kickoff testing QA phase"
-          title: "ci: kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)"
-          body: |
-            This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.
-            Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
-
-            (If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)
-          branch: ${{ env.TARGET_BRANCH }}
-          base: ${{ inputs.branch }}
-          draft: false
-          assignees: ${{ github.actor }}
-      - name: Push to testing branch
-        if: ${{ !inputs.kickoff_pr }}
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          git checkout ${{ env.TARGET_BRANCH }}
-          git pull origin ${{ env.TARGET_BRANCH }}
-          git rebase ${{ inputs.branch }}
-          git push origin ${{ env.TARGET_BRANCH }}
-      - name: Bump Version
-        if: ${{ !inputs.kickoff_pr }}
-        uses: ./action/github/.github/actions/release_semver_versioning
-        with:
-          release_type: ${{ env.RELEASE_TYPE }}
-          version_file: ${{ inputs.version_file }}
-      - name: Notify Matrix Room
-        uses: ./action/github/.github/actions/notify_testing_matrix
-        with:
-          kickoff_pr: ${{ !inputs.kickoff_pr }}
-          release_type: ${{ env.RELEASE_TYPE }}
+          cd action/package/testing/
+          git push origin testing
+  # alpha release
+  alpha_release:
+    needs: parse_conventional_commits
+    if: (${{ !inputs.kickoff_pr && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) }}) || (${{ !inputs.kickoff_pr && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type) }}) || (${{ inputs.release_type == 'alpha' }}) || (${{ contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type) }})
+    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
+    secrets: inherit
+    with:
+      branch: ${{ inputs.branch }}
+      action_branch: ${{ inputs.action_branch }}
+      version_file: ${{ inputs.version_file }}
+      python_version: ${{ inputs.python_version }}

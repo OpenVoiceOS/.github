@@ -47,7 +47,8 @@ scopes = [
   "plugins",
   "localisation",
   "resources",
-  "release"
+  "release",
+  "testing"
 ]
 
 footers = [

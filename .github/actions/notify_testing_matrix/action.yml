@@ -1,44 +1,34 @@
-name: Notify Matrix Chat
-
-# only triggers on pull request closed events
-on:
-  workflow_call:
-    inputs:
-      kickoff_pr:
-        type: boolean
-        default: true
-      subject:
-        type: string
-        default: 'no subject'
-      release_type:
-        type: string
-        required: true
-
-jobs:
-  notify_pr_matrix:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Send message to Matrix bots channel
-        if: ${{ !inputs.kickoff_pr }}
-        uses: fadenb/matrix-chat-message@v0.0.6
-        # this action was triggered by
-        with:
-          homeserver: 'matrix.org'
-          token: ${{ secrets.MATRIX_TOKEN }}
-          channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-          message: |
-            Testing QA phase of a ${{ inputs.release_type }} release started (${{ github.repository }}).
-            Subject to test: ${{ inputs.subject }}
-      - name: Send message to Matrix bots channel
-        if: ${{ inputs.kickoff_pr }}
-        uses: fadenb/matrix-chat-message@v0.0.6
-        # this action was triggered by
-        with:
-          homeserver: 'matrix.org'
-          token: ${{ secrets.MATRIX_TOKEN }}
-          channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-          message: |
-            PR to kick off the testing QA phase of a ${{ inputs.release_type }} release (${{ github.repository }}).
-            Please merge if it the testing phase should start.
-            Subject to test: ${{ inputs.subject }}
+name: 'Notify Matrix Chat'
+description: 'Send a message to a Matrix chat room'
+inputs:
+  kickoff_pr:
+    description: 'Kick off pull request'
+    required: true
+    default: true
+  subject:
+    description: 'Subject of the message'
+    required: true
+    default: 'no subject'
+  release_type:
+    description: 'Type of the release'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Set message
+      shell: bash
+      run: |
+        if ${{ inputs.kickoff_pr }}; then
+          MESSAGE="PR to kick off the testing QA phase of a ${{ inputs.release_type }} release ($GITHUB_REPOSITORY). Please merge if the testing phase should start. Subject to test: ${{ inputs.subject }}"
+        else
+          MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
+        fi
+        echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+      id: message
+    - name: Send message to Matrix
+      uses: fadenb/matrix-chat-message@v0.0.6
+      with:
+        homeserver: 'matrix.org'
+        token: ${{ secrets.MATRIX_TOKEN }}
+        channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
+        message: ${{ steps.message.outputs.message }}

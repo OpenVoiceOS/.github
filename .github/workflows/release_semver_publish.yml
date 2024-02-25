@@ -71,18 +71,6 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           sinceTag: ${{ env.SINCE_TAG }}
-      # pull changes in the release process back to dev
-      - name: Create Pull Request to dev
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GH_PAT }}
-          path: action/package/
-          commit-message: "ci: merge testing commits to dev"
-          title: "ci: merge testing commits (${{ env.VERSION }}) to dev"
-          branch: dev
-          base: testing
-          draft: false
-          assignees: ${{ github.actor }}
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
@@ -106,3 +94,9 @@ jobs:
         with:
           password: ${{secrets.PYPI_TOKEN}}
           packages-dir: action/package/dist/
+      - name: Rebase dev onto master
+        run: |
+          cd ${{ github.workspace }}/action/package
+          git checkout dev
+          git rebase master
+          git push origin dev --force

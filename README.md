@@ -59,6 +59,7 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
 ---------
   - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.  
   - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.  
+  - _Testing QA_: PRs/commits go into _dev_ with the prefix/scope `fix(testing):`  
 
   TODO (per repo):
   - `setup.py`: setuptools cant cope with semver compliance: `x.x.x-alpha...` stays `x.x.xax` for now
@@ -73,6 +74,7 @@ _Alpha releases are directly published without going through a test phase_
 
 Strategy: 3-staged  
   - Manually propose a testing start or automatically with setting "Conventional Commits" (optionally as PR)
+    - Kickoff PR: If the testing phase of the release should start right away or being time-delayed (starting when PR is merged). Input `kickoff_pr` (true/false)
   - Manually conclude testing phase, propose a stable release (PR)
   - Publishing of a stable release (on merge) and feed back the changes to the dev branch
 
@@ -106,6 +108,7 @@ on:
 
 jobs:
   start_semver_release_mechanism:
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/release_semver_start.yml@feat/shared_actions1
     with:
       branch: dev                                                  # Branch to use, default: branch that triggered the action
@@ -133,10 +136,11 @@ on:
 
 jobs:
   start_testing_phase:
-    if: (github.event.pull_request.merged == true) && (contains(github.event.pull_request.title, 'patch release') || contains(github.event.pull_request.title, 'minor release') || contains(github.event.pull_request.title, 'major release'))
+    if: github.actor != 'EggmanBot' && github.event.pull_request.merged == true && contains(fromJson('["patch release", "minor release", "major release"]'), github.event.pull_request.title)
     uses: openvoiceos/.github/.github/workflows/release_semver_versioning.yml@feat/shared_actions1
     secrets: inherit
     with:
+      action_branch: feat/shared_actions1         # Shared action branch to use, default: main
       version_file: ovos_testpkg/version.py       # the file containing the version number
       subject: ${{ github.event.pull_request.title }}
 ```
@@ -169,7 +173,7 @@ on:
 
 jobs:
   publish_stable_release:
-    if: (github.event.pull_request.merged == true) && (contains(github.event.pull_request.title, 'patch release stable') || contains(github.event.pull_request.title, 'minor release stable') || contains(github.event.pull_request.title, 'major release stable'))
+    if: github.actor != 'EggmanBot' && github.event.pull_request.merged == true && contains(fromJson('["patch release stable", "minor release stable", "major release stable"]'), github.event.pull_request.title)
     uses: openvoiceos/.github/.github/workflows/release_semver_publish.yml@feat/shared_actions1
     secrets: inherit
     with:
@@ -220,6 +224,7 @@ on:
 
 jobs:
   license_tests:
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/license_tests.yml@main
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
@@ -242,6 +247,7 @@ on:
 
 jobs:
   build_tests:
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/python_build_tests.yml@main
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
@@ -265,6 +271,7 @@ on:
 
 jobs:
   unit_tests:
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/pytest_file_or_dir.yml@main
     with:
       runner: ubuntu-latest
@@ -288,6 +295,7 @@ jobs:
   
   # showcase with multiple jobs that should add to the coverage test
   next_test_that_needs_coverage:
+    if: github.actor != 'EggmanBot'
     needs: unit_tests
     uses: openvoiceos/.github/.github/workflows/pytest_file_or_dir.yml@main
     with:
@@ -297,6 +305,7 @@ jobs:
     ...
   and_another_test_that_needs_coverage:
     needs: [ unit_tests, next_test_that_needs_coverage ]
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/pytest_file_or_dir.yml@main
     with:
       ...
@@ -307,7 +316,7 @@ jobs:
 (*) [Common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)  
 (**) Common python dependencies: [skill](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt) / [other](https://github.com/OpenVoiceOS/.github/requirements/pip_tests.txt) 
 ## Skills
-## Skill Installation Tests
+### Skill Installation Tests
 ```yaml
 name: Skill Installation Tests
 on:
@@ -315,6 +324,7 @@ on:
 
 jobs:
   skill_installation_tests:
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/skill_test_installation.yml@main
     with:
       runner: ubuntu-latest
@@ -328,7 +338,7 @@ jobs:
 ```
 (*) [Common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)  
 (**) [Common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)  
-## Skill Resource Tests
+### Skill Resource Tests
 Tests the resources of a skill (e.g dialogs, vocabs, regex or intent resources) for completeness and workability.
 ```yaml
 name: Skill Ressource Tests
@@ -337,6 +347,7 @@ on:
 
 jobs:
   skill_resource_tests:
+    if: github.actor != 'EggmanBot'
     uses: openvoiceos/.github/.github/workflows/skill_test_resources.yml@main
     with:
       runner: ubuntu-latest                     # Runner to use, default: ubuntu-latest
@@ -352,7 +363,8 @@ jobs:
 ```
 (*) [Common system dependencies](https://github.com/OpenVoiceOS/.github/requirements/sys_deb_common_deps.txt)  
 (**) [Common python dependencies](https://github.com/OpenVoiceOS/.github/requirements/pip_skill_tests.txt)  
-## Notify Matrix on Pull Request
+## Notifications
+### Notify Matrix on Pull Request
 ```yaml
 name: Notify Matrix Chat
 
