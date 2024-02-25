@@ -22,7 +22,7 @@ jobs:
       - name: Set message
         shell: bash
         run: |
-          if ${{ inputs.kickoff_pr }}; then
+          if ${{ inputs.kickoff_pr == 'true' }}; then
             MESSAGE="PR to kick off the testing QA phase of a ${{ inputs.release_type }} release ($GITHUB_REPOSITORY). Please merge if the testing phase should start. Subject to test: ${{ inputs.subject }}"
           else
             MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"

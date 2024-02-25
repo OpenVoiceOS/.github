@@ -25,9 +25,9 @@ on:
         description: 'Subject title of the push/pull request event to parse the release type.'
         required: false
       kickoff_pr:
-        type: boolean
         description: 'Whether to create a PR to mark the start of the testing phase or not'
-        default: false
+        type: string
+        default: 'false'
       locale_folder:
         type: string
         description: 'The folder location of the locale files'
@@ -186,7 +186,7 @@ jobs:
           cd ${{ github.workspace }}/action/package/ 
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}
       - name: Check Latest Release
-        if: ${{ inputs.kickoff_pr }}
+        if: ${{ inputs.kickoff_pr == 'true' }}
         run: |
           SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
@@ -207,13 +207,13 @@ jobs:
           fi
       - name: create changelog
         id: changelog
-        if: ${{ inputs.kickoff_pr }}
+        if: ${{ inputs.kickoff_pr == 'true' }}
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
           sinceTag: ${{ env.SINCE_TAG }}
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
-        if: ${{ inputs.kickoff_pr }}
+        if: ${{ inputs.kickoff_pr == 'true'}}
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GH_PAT }}
@@ -233,7 +233,7 @@ jobs:
           draft: false
           assignees: ${{ github.actor }}
       - name: Push to testing branch
-        if: ${{ !inputs.kickoff_pr }}
+        if: ${{ inputs.kickoff_pr == 'false' }}
         run: |
           cd ${{ github.workspace }}/action/package/
           git checkout ${{ env.TARGET_BRANCH }}
@@ -241,7 +241,7 @@ jobs:
           git rebase ${{ inputs.branch }}
           git push origin ${{ env.TARGET_BRANCH }}
       - name: Bump Version
-        if: ${{ !inputs.kickoff_pr }}
+        if: ${{ inputs.kickoff_pr == 'false' }}
         uses: ./action/github/.github/actions/release_semver_versioning
         with:
           release_type: ${{ env.RELEASE_TYPE }}
@@ -249,7 +249,7 @@ jobs:
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
-          kickoff_pr: ${{ !inputs.kickoff_pr }}
+          kickoff_pr: ${{ inputs.kickoff_pr }}
           subject: ${{ inputs.subject }}
           release_type: ${{ env.RELEASE_TYPE }}
   # testing release
@@ -283,7 +283,7 @@ jobs:
   # alpha release
   alpha_release:
     needs: parse_conventional_commits
-    if: (${{ !inputs.kickoff_pr && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) }}) || (${{ !inputs.kickoff_pr && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type) }}) || (${{ inputs.release_type == 'alpha' }}) || (${{ contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type) }})
+    if: (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) }}) || (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type) }}) || (${{ inputs.release_type == 'alpha' }}) || (${{ contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type) }})
     uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
     secrets: inherit
     with:

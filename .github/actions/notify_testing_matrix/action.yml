@@ -3,22 +3,21 @@ description: 'Send a message to a Matrix chat room'
 inputs:
   kickoff_pr:
     description: 'Kick off pull request'
-    required: true
-    default: true
+    default: 'false'
   subject:
     description: 'Subject of the message'
-    required: true
     default: 'no subject'
   release_type:
     description: 'Type of the release'
     required: true
+
 runs:
   using: 'composite'
   steps:
     - name: Set message
       shell: bash
       run: |
-        if ${{ inputs.kickoff_pr }}; then
+        if ${{ inputs.kickoff_pr == 'true' }}; then
           MESSAGE="PR to kick off the testing QA phase of a ${{ inputs.release_type }} release ($GITHUB_REPOSITORY). Please merge if the testing phase should start. Subject to test: ${{ inputs.subject }}"
         else
           MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
