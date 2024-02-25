@@ -228,8 +228,8 @@ jobs:
 
             Included changes:
             ${{ steps.changelog.outputs.changelog }}
-          branch: ${{ env.TARGET_BRANCH }}
-          base: ${{ inputs.branch }}
+          branch: ${{ inputs.branch }}
+          base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
       - name: Push to testing branch
