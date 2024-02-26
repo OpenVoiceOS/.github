@@ -151,10 +151,6 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           git diff --exit-code
           echo "translated=$?" >> $GITHUB_OUTPUT
-      - name: Check data types
-        run: |
-          echo "Type of outputs.release_type ("${{ needs.parse_conventional_commits.outputs.release_type }}"): $(echo "${{ needs.parse_conventional_commits.outputs.release_type }}" | jq -R type)"
-          echo "Type of inputs.kickoff_pr ("${{ inputs.kickoff_pr }}"): $(echo "${{ inputs.kickoff_pr }}" | jq -R type)"
       - name: Commit autotranslation to ${{ inputs.branch }}
         if: steps.changes.outputs.translated == '1'
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -215,7 +211,7 @@ jobs:
           sudo apt update
           sudo apt install gh
       - name: Authenticate GitHub CLI
-        run: echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
+        run: echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
       - name: Set up python ${{ inputs.python_version }}
         uses: actions/setup-python@v5
         with:
@@ -276,6 +272,7 @@ jobs:
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
+          matrix_token: ${{ secrets.MATRIX_TOKEN }}
           kickoff_pr: ${{ inputs.kickoff_pr }}
           subject: ${{ inputs.subject }}
           release_type: ${{ env.RELEASE_TYPE }}

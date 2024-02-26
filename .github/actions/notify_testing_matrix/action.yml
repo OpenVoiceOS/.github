@@ -1,6 +1,9 @@
 name: 'Notify Matrix Chat'
 description: 'Send a message to a Matrix chat room'
 inputs:
+  matrix_token:
+    description: 'The token to use to authenticate with the Matrix server'
+    required: true
   kickoff_pr:
     description: 'Kick off pull request'
     default: 'false'
@@ -22,12 +25,12 @@ runs:
         else
           MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
         fi
-        echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+        echo "MESSAGE=$MESSAGE" >> $GITHUB_ENV
       id: message
     - name: Send message to Matrix
       uses: fadenb/matrix-chat-message@v0.0.6
       with:
         homeserver: 'matrix.org'
-        token: ${{ secrets.MATRIX_TOKEN }}
+        token: ${{ inputs.matrix_token }}
         channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-        message: ${{ steps.message.outputs.message }}
+        message: ${{ env.MESSAGE }}

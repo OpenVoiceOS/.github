@@ -27,7 +27,7 @@ jobs:
           else
             MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
           fi
-          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+          echo "MESSAGE=$MESSAGE" >> $GITHUB_ENV
         id: message
       - name: Send message to Matrix bots channel
         uses: fadenb/matrix-chat-message@v0.0.6
@@ -36,4 +36,4 @@ jobs:
           homeserver: 'matrix.org'
           token: ${{ secrets.MATRIX_TOKEN }}
           channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-          message: ${{ steps.message.outputs.message }}
+          message: ${{ env.MESSAGE }}
