@@ -74,10 +74,9 @@ jobs:
       # check if the last commit was due to a PR merge (needed below)
       - name: PR merge?
         run: |
-          cd  ${{ github.workspace }}/action/package/ 
+          cd  ${{ github.workspace }}/action/package/
           LAST_COMMIT_SHA=$(git rev-parse HEAD)
-          PR_NUMBER=$(curl --silent --show-error --header "Authorization: Bearer ${{ secrets.GH_PAT }}" "https://api.github.com/repos/${{ github.repository }}/commits/${LAST_COMMIT_SHA}/pulls" | jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
+          PR_NUMBER=$(curl --silent --show-error --header "Authorization: Bearer ${{ secrets.GH_PAT }}" "https://api.github.com/repos/${{ github.repository }}/commits/${LAST_COMMIT_SHA}/pulls" | jq '. | select(length > 0) | .[0].number')
             echo "was_pr=true" >> $GITHUB_OUTPUT
           else
             echo "was_pr=false" >> $GITHUB_OUTPUT
