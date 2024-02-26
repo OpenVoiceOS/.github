@@ -151,6 +151,10 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           git diff --exit-code
           echo "translated=$?" >> $GITHUB_OUTPUT
+      - name: Check data types
+        run: |
+          echo "Type of outputs.release_type ("${{ needs.parse_conventional_commits.outputs.release_type }}"): $(echo "${{ needs.parse_conventional_commits.outputs.release_type }}" | jq -R type)"
+          echo "Type of inputs.release_type ("${{ inputs.release_type }}"): $(echo "${{ inputs.release_type }}" | jq -R type)"
       - name: Commit autotranslation to ${{ inputs.branch }}
         if: steps.changes.outputs.translated == '1'
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -260,7 +264,7 @@ jobs:
 
             Included changes:
             ${{ steps.changelog.outputs.changelog }}
-          branch: ${{ inputs.branch }}
+          branch: staging/test
           base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
