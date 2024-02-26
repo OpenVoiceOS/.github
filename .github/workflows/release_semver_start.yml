@@ -176,7 +176,7 @@ jobs:
   # alpha release
   alpha_release:
     needs: parse_conventional_commits
-    if: (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) }}) || (${{ inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type) }}) || (${{ inputs.release_type == 'alpha' }}) || (${{ contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type) }})
+    if: (inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type)) || (inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type)) || (inputs.release_type == 'alpha') || (contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type))
     uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
     secrets: inherit
     with:
@@ -210,6 +210,12 @@ jobs:
           repository: OpenVoiceOS/.github
           ref: ${{ inputs.action_branch }}
           path: action/github/
+      - name: Install GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install gh
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
       - name: Set up python ${{ inputs.python_version }}
         uses: actions/setup-python@v5
         with:
@@ -217,10 +223,6 @@ jobs:
       - name: Install Common Python Requirements
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
-      - name: Set up Git Authentication
-        run: |
-          cd ${{ github.workspace }}/action/package/ 
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}
       - name: Check Latest Release
         if: ${{ inputs.kickoff_pr == 'true' }}
         run: |
@@ -250,23 +252,13 @@ jobs:
           fi
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         if: ${{ inputs.kickoff_pr == 'true'}}
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GH_PAT }}
-          path: action/package/
-          commit-message: "ci(release): kickoff testing QA phase"
-          title: "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)"
-          body: |
-            This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.
-            Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
-
-            (If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)
-
-            Included changes:
-            ${{ steps.changelog.outputs.changelog }}
-          base: ${{ env.TARGET_BRANCH }}
-          draft: false
-          assignees: ${{ github.actor }}
+        run: |
+          gh pr create \
+          --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)" \
+          --body "This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.\nPlease merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.\n\n(If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)\n\nIncluded changes:\n${{ steps.changelog.outputs.changelog }}" \
+          --base ${{ env.TARGET_BRANCH }} \
+          --head dev \
+          --assignee ${{ github.actor }}
       - name: Push to testing branch
         if: ${{ inputs.kickoff_pr == 'false' }}
         run: |
