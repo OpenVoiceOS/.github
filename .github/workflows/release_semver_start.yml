@@ -226,8 +226,15 @@ jobs:
         run: |
           SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
+      - name: create changelog
+        id: changelog
+        if: ${{ inputs.kickoff_pr == 'true' }}
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          sinceTag: ${{ env.SINCE_TAG }}
       # if there is no testing branch, create one from the tag of the latest release
-      - name: Create Branch (if necessary)
+      - name: Create testing Branch (if necessary)
         run: |
           cd ${{ github.workspace }}/action/package/
           TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
@@ -241,13 +248,6 @@ jobs:
             git push origin ${{ env.TARGET_BRANCH }} --force
             git checkout ${{ inputs.branch }}
           fi
-      - name: create changelog
-        id: changelog
-        if: ${{ inputs.kickoff_pr == 'true' }}
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          sinceTag: ${{ env.SINCE_TAG }}
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         if: ${{ inputs.kickoff_pr == 'true'}}
         uses: peter-evans/create-pull-request@v5
@@ -264,7 +264,6 @@ jobs:
 
             Included changes:
             ${{ steps.changelog.outputs.changelog }}
-          branch: staging/test
           base: ${{ env.TARGET_BRANCH }}
           draft: false
           assignees: ${{ github.actor }}
