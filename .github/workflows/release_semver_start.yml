@@ -154,7 +154,7 @@ jobs:
       - name: Check data types
         run: |
           echo "Type of outputs.release_type ("${{ needs.parse_conventional_commits.outputs.release_type }}"): $(echo "${{ needs.parse_conventional_commits.outputs.release_type }}" | jq -R type)"
-          echo "Type of inputs.release_type ("${{ inputs.release_type }}"): $(echo "${{ inputs.release_type }}" | jq -R type)"
+          echo "Type of inputs.kickoff_pr ("${{ inputs.kickoff_pr }}"): $(echo "${{ inputs.kickoff_pr }}" | jq -R type)"
       - name: Commit autotranslation to ${{ inputs.branch }}
         if: steps.changes.outputs.translated == '1'
         uses: stefanzweifel/git-auto-commit-action@v5
