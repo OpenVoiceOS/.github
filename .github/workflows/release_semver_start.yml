@@ -254,7 +254,7 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           gh pr create \
           --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)" \
-          --body "This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.\nPlease merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.\n\n(If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)\n\nIncluded changes:\n${{ steps.changelog.outputs.changelog }}" \
+          --body "This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.  \nPlease merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.  \n  \n(If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)  \n  \nIncluded changes:  \n${{ steps.changelog.outputs.changelog }}" \
           --base ${{ env.TARGET_BRANCH }} \
           --head dev \
           --assignee ${{ github.actor }}
