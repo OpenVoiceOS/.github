@@ -148,6 +148,7 @@ jobs:
       - name: changes made?
         id: changes
         run: |
+          cd ${{ github.workspace }}/action/package/
           git diff --exit-code
           echo "translated=$?" >> $GITHUB_OUTPUT
       - name: Commit autotranslation to ${{ inputs.branch }}
