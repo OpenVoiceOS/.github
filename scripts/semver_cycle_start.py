@@ -55,6 +55,11 @@ for id, release in enumerate(releases):
     version = get_semver(release.tag_name)
     if id == 0:
         latest_version = version
+        continue
+
+    if not version:
+        continue
+    elif in_cycle(version):
         if LAST_RELEASE:
             if RELEASE_TYPE == "patch" and version.patch != latest_version.patch:
                 break
@@ -62,12 +67,8 @@ for id, release in enumerate(releases):
                 break
             elif RELEASE_TYPE == "major" and version.major != latest_version.major:
                 break
-            break
-        continue
-
-    if not version:
-        continue
-    elif in_cycle(version):
+            elif RELEASE_TYPE not in ["patch", "minor", "major"]:
+                break
         start_cycle_id = id
 
 if latest_version is None:
