@@ -60,15 +60,6 @@ for id, release in enumerate(releases):
     if not version:
         continue
     elif in_cycle(version):
-        if LAST_RELEASE:
-            if RELEASE_TYPE == "patch" and version.patch != latest_version.patch:
-                break
-            elif RELEASE_TYPE == "minor" and version.minor != latest_version.minor:
-                break
-            elif RELEASE_TYPE == "major" and version.major != latest_version.major:
-                break
-            elif RELEASE_TYPE not in ["patch", "minor", "major"]:
-                break
         start_cycle_id = id
 
 if latest_version is None:
