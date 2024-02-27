@@ -1,4 +1,4 @@
-name: Bump Version (after testing QA started)
+name: Bump Version (after testing QA started) and announce testing phase
 
 # only triggers on pull request closed events
 on:
@@ -25,7 +25,16 @@ on:
         required: true
 
 jobs:
-  start_testing_phase:
+  alpha_release:
+    secrets: inherit
+    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
+    with:
+      action_branch: ${{ inputs.action_branch }}
+      python_version: ${{ inputs.python_version }}
+      version_file: ${{ inputs.version_file }}
+      changelog_file: ${{ inputs.changelog_file }}
+  bump_version_and_announce_testing:
+    needs: alpha_release
     env:
       VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
       SOURCE_BRANCH: 'testing'
@@ -64,12 +73,3 @@ jobs:
         with:
           kickoff_pr: false
           release_type: ${{ env.RELEASE_TYPE }}
-  alpha_release:
-    needs: start_testing_phase
-    secrets: inherit
-    uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
-    with:
-      action_branch: ${{ inputs.action_branch }}
-      python_version: ${{ inputs.python_version }}
-      version_file: ${{ inputs.version_file }}
-      changelog_file: ${{ inputs.changelog_file }}
