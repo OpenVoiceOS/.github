@@ -5,21 +5,19 @@ from github import Github
 import semver
 
 """
-Get the start of the release cycle for the current release type. (patch, minor, major)
-(the release cycle starts with the end version of the last cylce)
-If `LAST_RELEASE` is set, the last release will be returned.
-If `FIRST_RELEASE` is set, the first release will be returned.
+Get the first release of the release cycle for the current release type. (patch, minor, major)
+If `LAST_RELEASE` is set, the last release of that release type will be returned.
+eg. last minor version of 0.10.7-a2 -> 0.10.0
 """
 
 GITHUB_REPOSITORY = getenv("GITHUB_REPOSITORY")
 RELEASE_TYPE = getenv("RELEASE_TYPE")
-FIRST_RELEASE = bool(getenv("FIRST_RELEASE"))
 LAST_RELEASE = bool(getenv("LAST_RELEASE"))
 
 if any(req is None for req in [GITHUB_REPOSITORY, RELEASE_TYPE]):
     raise ValueError("Missing required environment variable(s)")
 
-repo = Github(getenv("GITHUB_TOKEN")).get_repo(GITHUB_REPOSITORY)
+repo = Github(getenv("GH_PAT")).get_repo(GITHUB_REPOSITORY)
 latest_version = None
 start_cycle_id = 0
 
@@ -58,6 +56,12 @@ for id, release in enumerate(releases):
     if id == 0:
         latest_version = version
         if LAST_RELEASE:
+            if RELEASE_TYPE == "patch" and version.patch != latest_version.patch:
+                break
+            elif RELEASE_TYPE == "minor" and version.minor != latest_version.minor:
+                break
+            elif RELEASE_TYPE == "major" and version.major != latest_version.major:
+                break
             break
         continue
 
@@ -68,8 +72,7 @@ for id, release in enumerate(releases):
 
 if latest_version is None:
     exit(0)
-elif start_cycle_id < releases.totalCount - 1 and not \
-        (FIRST_RELEASE or LAST_RELEASE):
-    start_cycle_id += 1
+elif not LAST_RELEASE:
+    start_cycle_id -= 1
 
 print(releases[start_cycle_id].tag_name)

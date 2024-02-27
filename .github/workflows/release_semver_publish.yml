@@ -27,6 +27,7 @@ jobs:
     env:
       SOURCE_BRANCH: 'master'
       GITHUB_REPOSITORY: ${{ github.repository }}
+      GH_PAT: ${{ secrets.GH_PAT }}
     runs-on: ubuntu-latest
     steps:
       - name: set up release type
