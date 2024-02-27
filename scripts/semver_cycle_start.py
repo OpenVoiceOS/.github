@@ -72,6 +72,7 @@ for id, release in enumerate(releases):
         start_cycle_id = id
 
 if latest_version is None:
+    print("0.0.0")
     exit(0)
 elif not LAST_RELEASE:
     start_cycle_id -= 1
