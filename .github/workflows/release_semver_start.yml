@@ -225,6 +225,7 @@ jobs:
       - name: Check Latest Release
         if: ${{ inputs.kickoff_pr == 'true' }}
         run: |
+          export LAST_RELEASE=true
           SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: create changelog
@@ -247,12 +248,12 @@ jobs:
               git checkout -b ${{ env.TARGET_BRANCH }} tags/${{ env.SINCE_TAG }}
             fi            
             git push origin ${{ env.TARGET_BRANCH }} --force
-            git checkout ${{ inputs.branch }}
           fi
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
         if: ${{ inputs.kickoff_pr == 'true'}}
         run: |
           cd ${{ github.workspace }}/action/package/
+          git checkout ${{ inputs.branch }}
           gh pr create \
           --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)" \
           --body "This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.  \nPlease merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.  \n  \n(If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)  \n  \nIncluded changes:  \n${{ steps.changelog.outputs.changelog }}" \
