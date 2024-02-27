@@ -59,13 +59,13 @@ for id, release in enumerate(releases):
 
     if not version:
         continue
-    elif in_cycle(version):
+    elif in_cycle(version) and RELEASE_TYPE in ["patch", "minor", "major"]:
         start_cycle_id = id
 
 if latest_version is None:
     print("0.0.0")
     exit(0)
-elif not LAST_RELEASE:
+elif not LAST_RELEASE and start_cycle_id > 0:
     start_cycle_id -= 1
 
 print(releases[start_cycle_id].tag_name)
