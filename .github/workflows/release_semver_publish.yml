@@ -5,6 +5,10 @@ on:
       PYPI_TOKEN:
         required: true
     inputs:
+      branch:
+        description: 'The branch to checkout'
+        type: string
+        default: master
       action_branch:
         description: 'The shared action branch to checkout'
         type: string
@@ -25,7 +29,6 @@ on:
 jobs:
   build_and_publish:
     env:
-      SOURCE_BRANCH: 'master'
       GITHUB_REPOSITORY: ${{ github.repository }}
       GH_PAT: ${{ secrets.GH_PAT }}
     runs-on: ubuntu-latest
@@ -37,7 +40,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ env.SOURCE_BRANCH }}
+          ref: ${{ inputs.branch }}
           fetch-depth: 0
           path: action/package/
       - name: Checkout Scripts Repo
