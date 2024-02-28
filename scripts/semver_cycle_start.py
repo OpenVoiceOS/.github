@@ -5,30 +5,52 @@ from github import Github
 import semver
 
 """
-Get the first, last or next release versions of the release cycle 
+Get the first, last, latest or next release versions of the release cycle 
 for the current release type. (patch, minor, major)
 
-    If `LAST_RELEASE` is set, the last release of that release type will be returned.
-    eg. last minor version of 0.10.7-a2 -> 0.10.0
+    enviroment Variable `RELEASE`:
+    if unset, the first release of that release type in the current cycle will be returned.
 
-    If `NEXT_RELEASE` is set, the next release of the upcoming release type will be returned.
+    If set to `last`, the last release of that release type in the current cycle will be returned.
+    eg. last minor version of 0.10.7-a2 -> 0.10.0
+        last patch version of 0.10.1 -> 0.10.1
+        last patch version of 0.10.0a2 -> 0.10.0 (!)
+
+    If set to `latest`, returns the latest version released.
+
+    If set to `next` the next release of the upcoming release type will be returned.
     eg. next minor version of 0.10.7-a2 -> 0.11.0
         next alpha version of 0.10.7 -> 0.10.8a1
         next alpha version of 0.10.7a2 -> 0.10.7a3
-    
 """
 
 ALPHA_MARKER = getenv("ALPHA_MARKER", "a") 
 
 GITHUB_REPOSITORY = getenv("GITHUB_REPOSITORY")
-RELEASE_TYPE = getenv("RELEASE_TYPE")
-LAST_RELEASE = bool(getenv("LAST_RELEASE"))
-NEXT_RELEASE = bool(getenv("NEXT_RELEASE"))
+RELEASE_TYPE = getenv("RELEASE_TYPE", "").lower().strip()
+RELEASE = getenv("RELEASE", "").lower().strip()
 
-if any(req is None for req in [GITHUB_REPOSITORY, RELEASE_TYPE]):
+# validate environment variables
+if RELEASE and RELEASE not in ["last", "next", "latest"]:
+    raise ValueError("Invalid value for `RELEASE` environment variable. "
+                     "Expected one of `last`, `next`, `latest`.")
+
+if RELEASE_TYPE and RELEASE_TYPE not in ["patch", "minor", "major", "alpha"]:
+    raise ValueError("Invalid value for `RELEASE_TYPE` environment variable. "
+                     "Expected one of `patch`, `minor`, `major`, `alpha`.")
+
+requirements = {
+    "GITHUB_REPOSITORY": GITHUB_REPOSITORY
+}
+if RELEASE != "latest":
+    requirements.update({"RELEASE_TYPE", RELEASE_TYPE})
+
+missing_req = [name for name, value in requirements.items() if value is None]
+if missing_req:
     raise ValueError("Missing required environment variable(s) "
-                     "`GITHUB_REPOSITORY` and `RELEASE_TYPE`)")
+                     f"{str(missing_req)}")
 
+# get the repo
 repo = Github(getenv("GH_PAT")).get_repo(GITHUB_REPOSITORY)
 latest_version = None
 start_cycle_id = 0
@@ -53,7 +75,7 @@ def bump_version(v: semver.Version) -> semver.Version:
         return v.bump_minor()
     elif RELEASE_TYPE == "major":
         return v.bump_major()
-    elif RELEASE_TYPE == "alpha":
+    elif RELEASE_TYPE in ["alpha", ""]:
         if not v.prerelease:
             v = v.bump_patch()
         return to_pypi_format(v.bump_prerelease(ALPHA_MARKER))
@@ -74,15 +96,18 @@ def in_cycle(v: semver.Version) -> bool:
     elif RELEASE_TYPE == "major":
         return v.major == latest_version.major
 
-
+# get the release history
 releases = repo.get_releases()
 
 for id, release in enumerate(releases):
     version = get_semver(release.tag_name)
     if id == 0:
         latest_version = version
-        if NEXT_RELEASE:
+        if RELEASE == "next":
             next_version = bump_version(latest_version)
+            break
+        elif RELEASE == "latest":
+            start_cycle_id = 0
             break
         continue
 
@@ -94,11 +119,11 @@ for id, release in enumerate(releases):
 version = None
 if latest_version is None:
     version = "0.0.0"
-    if NEXT_RELEASE:
+    if RELEASE == "next":
         version = bump_version(semver.Version.parse(version))
-elif NEXT_RELEASE:
+elif RELEASE == "next":
     version = next_version
-elif not LAST_RELEASE and start_cycle_id > 0:
+elif not RELEASE == "last" and start_cycle_id > 0:
     start_cycle_id -= 1
 
 print(version or releases[start_cycle_id].tag_name)

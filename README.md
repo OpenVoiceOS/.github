@@ -60,6 +60,7 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
   - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.  
   - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.  
   - _Testing QA_: PRs/commits go into _dev_ with the prefix/scope `fix(testing):`  
+  - Release-tags: The tag resemble the semantic versioning (eg. `1.2.3`; no prefix!)
 
   TODO (per repo):
   - `setup.py`: setuptools cant cope with semver compliance: `x.x.x-alpha...` stays `x.x.xax` for now
