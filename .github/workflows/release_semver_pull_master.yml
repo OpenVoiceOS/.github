@@ -53,8 +53,9 @@ jobs:
         run: |
           RELEASE_TYPE=$(python ${{ github.workspace }}/action/github/scripts/parse_semver_release.py)
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
-      - name: Get Start of the Version Cycle
+      - name: Check Latest Release
         run: |
+          export RELEASE="latest"
           SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: Bump Changelog
