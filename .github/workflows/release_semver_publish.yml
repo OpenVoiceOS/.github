@@ -62,8 +62,7 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Check Latest Release
         run: |
-          export RELEASE="latest"
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --repo ${{ env.GITHUB_REPOSITORY }})
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: Bump Changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3

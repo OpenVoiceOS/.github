@@ -225,8 +225,7 @@ jobs:
       - name: Check Latest Release
         if: ${{ inputs.kickoff_pr == 'true' }}
         run: |
-          export RELEASE="latest"
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_cycle_start.py)
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --repo ${{ env.GITHUB_REPOSITORY }})
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       # if there is no testing branch, create one from the tag of the latest release
       - name: Create testing Branch (if necessary)
