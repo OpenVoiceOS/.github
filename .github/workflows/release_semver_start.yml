@@ -169,7 +169,7 @@ jobs:
           commit_message: "ci(localisation): update resource test file"
           repository: action/package/
           branch: ${{ inputs.branch }}
-  # alpha release
+  # alpha release (+ testing)
   alpha_release:
     needs: parse_conventional_commits
     if: (inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type)) || (inputs.kickoff_pr == 'false' && contains(fromJson('["patch", "minor", "major"]'), inputs.release_type)) || (inputs.release_type == 'alpha') || (contains(fromJson('["alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type))
@@ -180,12 +180,11 @@ jobs:
       version_file: ${{ inputs.version_file }}
       python_version: ${{ inputs.python_version }}
       changelog_file: ${{ inputs.changelog_file }}
+      release_type: ${{ needs.parse_conventional_commits.outputs.release_type }}
   # >= patch release
   kickoff_testing:
     needs: parse_conventional_commits
     if: (contains(fromJson('["patch", "minor", "major"]'), needs.parse_conventional_commits.outputs.release_type) || (inputs.release_type != 'alpha' && inputs.release_type != ''))
-    permissions:
-      contents: write
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: 'testing'
@@ -207,10 +206,10 @@ jobs:
           repository: OpenVoiceOS/.github
           ref: ${{ inputs.action_branch }}
           path: action/github/
-      - name: Install GitHub CLI
+      - name: Install Common System Dependencies
         run: |
           sudo apt update
-          sudo apt install gh
+          xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
       - name: Authenticate GitHub CLI
         run: |
           unset GITHUB_TOKEN
@@ -227,7 +226,9 @@ jobs:
         run: |
           SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --repo ${{ env.GITHUB_REPOSITORY }})
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-      # if there is no testing branch, create one from the tag of the latest release
+          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --next --repo ${{ env.GITHUB_REPOSITORY }} --release ${{ env.RELEASE_TYPE }})
+          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+      # if there is no testing branch, create one from the tag of the latest release or first commit
       - name: Create testing Branch (if necessary)
         run: |
           cd ${{ github.workspace }}/action/package/
@@ -253,8 +254,16 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           gh pr create \
-          --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release)" \
-          --body "This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release.  \nPlease merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.  \n  \n(If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)  \n  \nIncluded changes:  \n${{ steps.changelog.outputs.changelog }}" \
+          --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release est. ${{ env.NEXT_VERSION}})" \
+          --body |
+            This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release (est. ${{ env.NEXT_VERSION}}).
+            
+            Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
+            
+            (If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)
+            
+            Included changes:
+            ${{ steps.changelog.outputs.changelog }}
           --base ${{ env.TARGET_BRANCH }} \
           --head dev \
           --assignee ${{ github.actor }}
@@ -285,8 +294,6 @@ jobs:
     needs: ["parse_conventional_commits", "autotranslate"]
     if: ${{ needs.parse_conventional_commits.outputs.release_type == 'testing' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

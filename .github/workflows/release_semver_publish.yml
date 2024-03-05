@@ -56,19 +56,15 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_build_tools.txt
       - name: Get Version
         run: |
           VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Check Latest Release
         run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --repo ${{ env.GITHUB_REPOSITORY }})
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --repo ${{ env.GITHUB_REPOSITORY }})
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-      - name: Bump Changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          output: action/package/${{ inputs.changelog_file }}
       - name: create release changelog (cropped)
         id: changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
@@ -80,27 +76,25 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GH_PAT }}
-          tag: V${{ env.VERSION }}
+          tag: ${{ env.VERSION }}
           name: Release ${{ env.VERSION }}
           body: |
             Changes in this Release
             ${{ steps.changelog.outputs.changelog }}
-      - name: Install Build Tools
-        run: |
-          pip install --upgrade pip
-          python -m pip install build wheel
       - name: Build Distribution Packages
         run: |
-          cd ${{ github.workspace }}/action/package
-          python setup.py sdist bdist_wheel
+          cd ${{ github.workspace }}/action
+          mkdir -p dist && cd dist
+          python ../package/setup.py sdist bdist_wheel
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{secrets.PYPI_TOKEN}}
-          packages-dir: action/package/dist/
-      - name: Rebase dev onto master
-        run: |
-          cd ${{ github.workspace }}/action/package
-          git checkout dev
-          git rebase master
-          git push origin dev --force
+          packages-dir: action/dist/
+      # NO REBASE APPROACH!!
+      # - name: Rebase dev onto master
+      #   run: |
+      #     cd ${{ github.workspace }}/action/package
+      #     git checkout dev
+      #     git rebase master
+      #     git push origin dev --force

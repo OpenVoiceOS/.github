@@ -29,25 +29,49 @@ runs:
       run: |
         RELEASE_TYPE=$(echo "${{ inputs.subject }}" | grep -oP '(patch|minor|major)')
         echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
-    - name: Checkout
+    - name: Checkout Package
       uses: actions/checkout@v4
       with:
         ref: dev
         fetch-depth: 0
-    - name: Increment Version
-      shell: bash
+        path: action/package
+    - name: Checkout Scripts Repo
+      uses: actions/checkout@v4
+      with:
+        repository: OpenVoiceOS/.github
+        ref: ${{ inputs.action_branch }}
+        path: action/github/
+    - name: Set up python ${{ inputs.python_version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python_version }}
+    - name: Install Common Python Requirements
       run: |
-        python action/github/scripts/bump_${{ env.RELEASE_TYPE }}.py
-        VERSION=$(python action/package/setup.py --version)
-        echo "VERSION=${VERSION}" >> $GITHUB_ENV
-    - name: Push Version Change
+        pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+    - name: alpha_release
+      uses: ./action/github/.github/actions/release_alpha
+      with:
+        action_branch: ${{ inputs.action_branch }}
+        python_version: ${{ inputs.python_version }}
+        version_file: ${{ inputs.version_file }}
+        changelog_file: ${{ inputs.changelog_file }}
+    - name: Bump to next ${{ env.RELEASE_TYPE }} version
+        id: version
+        run: |
+          cd ${{ github.workspace }}/action/github/scripts/
+          VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }})
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          NEXT_VERSION=$(python semver_release_version.py --next --file ${{ env.VERSION_FILE }} --release ${{ env.RELEASE_TYPE }} --save)
+          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+    - name: Push Version Change (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: Increment Version to ${{ env.VERSION }}
+        commit_message: Increment Version to ${{ env.NEXT_VERSION }}
         repository: action/package/
     - name: Rebase testing onto dev
       shell: bash
       run: |
+        cd ${{ github.workspace }}/action/package/
         git checkout testing
         git rebase dev
         git push origin testing --force
@@ -56,10 +80,3 @@ runs:
       with:
         kickoff_pr: false
         release_type: ${{ env.RELEASE_TYPE }}
-    - name: alpha_release
-      uses: ./action/github/.github/actions/release_alpha
-      with:
-        action_branch: ${{ inputs.action_branch }}
-        python_version: ${{ inputs.python_version }}
-        version_file: ${{ inputs.version_file }}
-        changelog_file: ${{ inputs.changelog_file }}

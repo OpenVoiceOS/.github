@@ -26,6 +26,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_PAT }}
           ref: testing
           path: action/package/
       - name: Checkout Scripts Repo
@@ -38,6 +39,10 @@ jobs:
         run: |
           sudo apt update
           xargs sudo apt install -y < ${{ github.workspace }}/action/github/requirements/sys_deb_common_deps.txt
+      - name: Authenticate GitHub CLI
+        run: |
+          unset GITHUB_TOKEN
+          echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -55,8 +60,8 @@ jobs:
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
       - name: Check Latest Release
         run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --repo ${{ env.GITHUB_REPOSITORY }})
-          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
+          LATEST_RELEASE=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type ${{ env.RELEASE_TYPE }})
+          echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_ENV
       - name: Bump Changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
@@ -67,18 +72,29 @@ jobs:
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
-          sinceTag: ${{ env.SINCE_TAG }}
+          sinceTag: ${{ env.LATEST_RELEASE }}
+      # if there is no master branch, create one from the tag of the latest release or first commit
+      - name: Create Master Branch (if necessary)
+        run: |
+            cd ${{ github.workspace }}/action/package/
+            TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
+            INITIAL_COMMIT=$(git rev-list --max-parents=0 dev)
+            if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
+              if [ ${{ env.LATEST_RELEASE }} == "0.0.0" ]; then
+                git checkout -b ${{ env.TARGET_BRANCH }} $INITIAL_COMMIT
+              else
+                git checkout -b ${{ env.TARGET_BRANCH }} tags/${{ env.LATEST_RELEASE }}
+              fi            
+              git push origin ${{ env.TARGET_BRANCH }} --force
+            fi
       - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GH_PAT }}
-          path: action/package/
-          commit-message: "ci(release): declare ${{ env.VERSION }} stable"
-          title: "ci(release): declare ${{ env.RELEASE_TYPE }} release stable (${{ env.VERSION }})"
-          body: |
-            Changes in this Release
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          gh pr create \
+          --title "ci(release): declare ${{ env.RELEASE_TYPE }} release stable (${{ env.VERSION }})" \
+          --body |
+            Included changes:
             ${{ steps.changelog.outputs.changelog }}
-          branch: ${{ env.TARGET_BRANCH }}
-          base: testing
-          draft: false
-          assignees: ${{ github.actor }}
+          --base ${{ env.TARGET_BRANCH }} \
+          --head testing \
+          --assignee ${{ github.actor }}

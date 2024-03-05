@@ -8,3 +8,4 @@ libpulse-dev
 libicu-dev
 pkg-config
 libenchant-2-2
+gh

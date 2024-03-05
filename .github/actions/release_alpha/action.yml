@@ -19,12 +19,11 @@ inputs:
     default: 'CHANGELOG.md'
 runs:
   using: 'composite'
+  env:
+      VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
+      SOURCE_BRANCH: ${{ inputs.release_type == 'alpha' && 'dev' || 'testing' }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
   steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        ref: dev
-        path: action/package/
     - name: Checkout Scripts Repo
       uses: actions/checkout@v4
       with:
@@ -35,48 +34,79 @@ runs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python_version }}
-    - name: Increment Version
-      shell: bash
+    - name: Install Python Dependencies
       run: |
-        python action/github/scripts/bump_alpha.py
-        VERSION=$(python action/package/setup.py --version)
+        pip install --upgrade pip
+        pip install -r ${{ github.workspace }}/action/github/scripts/requirements/pip_base.txt
+        pip install -r ${{ github.workspace }}/action/github/scripts/requirements/pip_build_tools.txt
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.SOURCE_BRANCH }}
+        path: action/package/
+    # testing specific steps. Those releases belong to the previous release cycle
+    # to be included in the major/minor/patch release we have to step down to the last release tag and increase from there
+    - name: Checkout At Tag And Cherry Pick
+      if: ${{ inputs.release_type == 'testing' }}
+      run: |
+        cd ${{ github.workspace }}/action/package/
+        LAST_COMMIT_SHA=$(git rev-parse dev)
+        TEST_VERSION=$(python setup.py --version)
+        VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --last)
+        NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
         echo "VERSION=${VERSION}" >> $GITHUB_ENV
-    - name: "Generate release changelog"
+        echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+        git checkout "tag/$VERSION"
+        git cherry-pick "$LAST_COMMIT_SHA"
+        CHERRYPICK_SHA=$(git rev-parse HEAD)
+        echo "CHERRYPICK_SHA=${CHERRYPICK_SHA}" >> $GITHUB_ENV
+    - name: Increment Version
+      id: version
+      if: ${{ inputs.release_type == 'alpha' }}
+      run: |
+        cd ${{ github.workspace }}/action/github/scripts/
+        VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }})
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
+        NEXT_VERSION=$(python semver_release_version.py --next --type alpha --file ${{ env.VERSION_FILE }} --save)
+        echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+    - name: change working directory
+      run: cd ${{ github.workspace }}/action/package/
+    - name: Generate Release Changelog (cropped)
+      id: changelog
       uses: heinrichreimer/github-changelog-generator-action@v2.3
       with:
         token: ${{ secrets.GH_PAT }}
-        output: action/package/${{ inputs.changelog_file }}
-    - name: Push Version Change
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: Increment Version to ${{ env.VERSION }}
-        repository: action/package/
-    - name: Change working directory to release
-      shell: bash
-      run: cd ${{ github.workspace }}/action/package/
+        sinceTag: ${{ env.VERSION }}
     - name: Create Pre-release
+      id: create_release
       uses: ncipollo/release-action@v1
       with:
         token: ${{ secrets.GH_PAT }}
-        tag: V${{ env.VERSION }}
-        name: Release ${{ env.VERSION }}
+        tag: ${{ env.NEXT_VERSION }}
+        name: Release ${{ env.NEXT_VERSION }}
         body: |
           Changes in this Release
           ${{ steps.changelog.outputs.changelog }}
-        commit: dev
+        commit: ${{ env.CHERRYPICK_SHA || 'dev' }}
         prerelease: true
-    - name: Install Build Tools
-      shell: bash
-      run: |
-        pip install --upgrade pip
-        python -m pip install build wheel
     - name: Build Distribution Packages
-      shell: bash
       run: |
-        cd action/package
-        python setup.py sdist bdist_wheel
+        cd ${{ github.workspace }}/action
+        mkdir -p dist && cd dist
+        python ../package/setup.py sdist bdist_wheel
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{secrets.PYPI_TOKEN}}
-        packages-dir: action/package/dist/
+        packages-dir: action/dist/
+    - name: Generate Full Changelog
+      id: full_changelog
+      uses: heinrichreimer/github-changelog-generator-action@v2.3
+      with:
+        token: ${{ secrets.GH_PAT }}
+        output: ${{ env.VERSION_FILE }}
+    - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
+        repository: action/package/
