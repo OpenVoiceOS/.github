@@ -89,6 +89,10 @@ jobs:
       - name: Synchronize testing with dev
         run: |
           cd ${{ github.workspace }}/action/package
+          git checkout dev
+          git pull origin dev
+          git checkout testing
+          git pull origin testing
           git rebase dev
           if [ $? -ne 0 ]; then
             git rebase --abort
@@ -98,7 +102,6 @@ jobs:
       - name: Synchronize dev with testing
         run: |
           git checkout dev
-          git fetch origin
           git rebase testing
           if [ $? -ne 0 ]; then
             git rebase --abort
