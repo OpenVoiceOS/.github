@@ -92,9 +92,11 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           gh pr create \
           --title "ci(release): declare ${{ env.RELEASE_TYPE }} release stable (${{ env.VERSION }})" \
-          --body |
+          --body "$(cat << EOF
             Included changes:
             ${{ steps.changelog.outputs.changelog }}
+          EOF
+          )" \
           --base ${{ env.TARGET_BRANCH }} \
           --head testing \
           --assignee ${{ github.actor }}

@@ -255,7 +255,7 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           gh pr create \
           --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release est. ${{ env.NEXT_VERSION}})" \
-          --body |
+          --body "$(cat << EOF
             This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release (est. ${{ env.NEXT_VERSION}}).
             
             Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
@@ -264,6 +264,8 @@ jobs:
             
             Included changes:
             ${{ steps.changelog.outputs.changelog }}
+          EOF
+          )" \
           --base ${{ env.TARGET_BRANCH }} \
           --head dev \
           --assignee ${{ github.actor }}
