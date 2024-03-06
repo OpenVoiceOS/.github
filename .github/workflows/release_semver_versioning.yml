@@ -87,7 +87,7 @@ jobs:
       - name: Synchronize testing with dev
         run: |
           cd ${{ github.workspace }}/action/package
-          git pull --rebase=merges dev
+          git rebase dev
           if [ $? -ne 0 ]; then
             git rebase --abort
             git rebase -Xtheirs dev
@@ -96,7 +96,8 @@ jobs:
       - name: Synchronize dev with testing
         run: |
           git checkout dev
-          git pull --rebase=merges testing
+          git fetch origin
+          git rebase testing
           if [ $? -ne 0 ]; then
             git rebase --abort
             git rebase -Xours testing
