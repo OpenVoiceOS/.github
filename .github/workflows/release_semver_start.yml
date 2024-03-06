@@ -226,7 +226,7 @@ jobs:
         run: |
           SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --next --release ${{ env.RELEASE_TYPE }})
+          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --next --type ${{ env.RELEASE_TYPE }})
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       # if there is no testing branch, create one from the tag of the latest release or first commit
       - name: Create testing Branch (if necessary)

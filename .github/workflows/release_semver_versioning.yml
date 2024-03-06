@@ -71,7 +71,7 @@ jobs:
           cd ${{ github.workspace }}/action/github/scripts/
           VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }})
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          NEXT_VERSION=$(python semver_release_version.py --next --file ${{ env.VERSION_FILE }} --release ${{ env.RELEASE_TYPE }} --save)
+          NEXT_VERSION=$(python semver_release_version.py --next --file ${{ env.VERSION_FILE }} --type ${{ env.RELEASE_TYPE }} --save)
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       - name: Push Version Change (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
