@@ -75,8 +75,6 @@ RESTRICT_TO_CYCLE = args.command == "cycle"
 if REPOSITORY is None and not (args.file or args.version):
     parser.error("either set up an environmental variable `GITHUB_REPOSITORY` or pass --version or --file as arguments")
 
-if RELEASE_TYPE == "alpha":
-    RELEASE_TYPE = "prerelease"
 
 class OVOSReleases(semver.Version):
     __history = []
@@ -93,7 +91,7 @@ class OVOSReleases(semver.Version):
                        release: Optional[GitRelease] = None):
         self.__release = release
         if isinstance(release, GitRelease):
-            self.__prefix = re.match(r"([a-zA-Z]+)?", release.tag_name).group(1)
+            self.__prefix = re.match(r"^([a-zA-Z-\/\\]+)?", release.tag_name).group(1) or ""
             ver = self.parse(release.tag_name)
             major = ver.major
             minor = ver.minor
@@ -274,11 +272,11 @@ VERSION_ALPHA = {self.prerelease.replace(ALPHA_MARKER, '').replace('.', '') if s
     @staticmethod
     def parse(tag: str) -> semver.Version:
         # remove prefix from tag
-        tag = re.sub(r"([a-zA-Z]+)?", "", tag)
+        tag = re.sub(r"^([a-zA-Z-\/\\]+)?", "", tag)
 
         # hack for alpha releases
-        if re.match(r"[0-9]+\.[0-9]+\.[0-9]+a[0-9]+", tag):
-            tag = re.sub(r"([0-9]+)(a[0-9]+)", r"\1-\2", tag)
+        if re.match(rf"[0-9]+\.[0-9]+\.[0-9]+{ALPHA_MARKER}[0-9]+", tag):
+            tag = re.sub(rf"([0-9]+){ALPHA_MARKER}([0-9]+)", rf"\1-{ALPHA_MARKER}.\2", tag)
 
         if not semver.Version.is_valid(tag):
             return None

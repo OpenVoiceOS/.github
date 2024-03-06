@@ -224,7 +224,14 @@ jobs:
       - name: Check Latest Release
         if: ${{ inputs.kickoff_pr == 'true' }}
         run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest)
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py cycle --latest --type ${{ env.RELEASE_TYPE }})
+          if [ -z "$SINCE_TAG" ]; then
+            if [ "${{ env.RELEASE_TYPE }}" == "patch" ]; then
+                SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type minor)
+            elif [ "${{ env.RELEASE_TYPE }}" == "minor" ]; then
+              SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type major)
+            fi
+          fi
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
           NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --next --type ${{ env.RELEASE_TYPE }})
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
