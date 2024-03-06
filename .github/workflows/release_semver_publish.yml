@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: set up release type
         run: |
-          RELEASE_TYPE=$(echo ${{ inputs.subject }} | grep -oP '(patch|minor|major)')
+          RELEASE_TYPE=$(echo "${{ inputs.subject }}" | grep -oP '(patch|minor|major)')
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
       - name: Checkout Repository
         uses: actions/checkout@v4
