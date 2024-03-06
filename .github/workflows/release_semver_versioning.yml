@@ -25,25 +25,7 @@ on:
         required: true
 
 jobs:
-  synchronize_testing:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Package
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Synchronize testing with dev
-        run: |
-          git checkout testing
-          git pull origin dev
-          git push origin testing
-      - name: Synchronize dev with testing
-        run: |
-          git checkout dev
-          git pull origin testing
-          git push origin dev
   alpha_release:
-    needs: synchronize_testing
     secrets: inherit
     uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
     with:
@@ -52,7 +34,7 @@ jobs:
       version_file: ${{ inputs.version_file }}
       changelog_file: ${{ inputs.changelog_file }}
   bump_version_and_announce_testing:
-    needs: [alpha_release, synchronize_testing]
+    needs: alpha_release
     env:
       VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
       SOURCE_BRANCH: 'testing'
@@ -96,6 +78,17 @@ jobs:
         with:
           commit_message: Increment Version to ${{ env.NEXT_VERSION }}
           repository: action/package/
+      - name: Synchronize testing with dev
+        run: |
+          cd ${{ github.workspace }}/action/package
+          git checkout testing
+          git pull origin dev
+          git push origin testing
+      - name: Synchronize dev with testing
+        run: |
+          git checkout dev
+          git pull origin testing
+          git push origin dev
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
