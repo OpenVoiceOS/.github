@@ -53,6 +53,7 @@ def add_common_arguments(parser):
     release_group.add_argument("--first", action='store_true')
 
     input_group = parser.add_mutually_exclusive_group()
+    #input_group.add_argument("--repo")
     input_group.add_argument("--file")
     input_group.add_argument("--version")
 
@@ -80,6 +81,7 @@ class OVOSReleases(semver.Version):
     __github_token = None
     __repo = None
     __release = None
+    __prefix = ""
 
     def __init__(self, major: SupportsInt = 0,
                        minor: SupportsInt = 0,
@@ -89,6 +91,7 @@ class OVOSReleases(semver.Version):
                        release: Optional[GitRelease] = None):
         self.__release = release
         if isinstance(release, GitRelease):
+            self.__prefix = re.match(r"([a-zA-Z]+)?", release.tag_name).group(1)
             ver = self.parse(release.tag_name)
             major = ver.major
             minor = ver.minor
@@ -97,6 +100,9 @@ class OVOSReleases(semver.Version):
             build = ver.build
 
         super().__init__(major, minor, patch, prerelease, build)
+
+    def __str__(self) -> str:
+        return f"{self.__prefix}{super().__str__()}"
     
     def next(self, rtype: Optional[str], alpha_marker: str = ALPHA_MARKER)\
         -> Optional["OVOSReleases"]:
@@ -261,12 +267,12 @@ VERSION_ALPHA = {self.prerelease.replace(ALPHA_MARKER, '').replace('.', '') if s
 """)
             
     def to_pypi_format(self) -> str:
-        return f"{self.major}.{self.minor}.{self.patch}{self.prerelease.replace('.', '') if self.prerelease else ''}"
+        return f"{self.__prefix}{self.major}.{self.minor}.{self.patch}{self.prerelease.replace('.', '') if self.prerelease else ''}"
             
     @staticmethod
     def parse(tag: str) -> semver.Version:
-        # hack for v prefix
-        tag = tag.lstrip("v").lstrip("V")
+        # remove prefix from tag
+        tag = re.sub(r"([a-zA-Z]+)?", "", tag)
 
         # hack for alpha releases
         if re.match(r"[0-9]+\.[0-9]+\.[0-9]+a[0-9]+", tag):
