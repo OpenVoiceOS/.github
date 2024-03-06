@@ -82,12 +82,12 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package
           git checkout testing
-          git pull origin dev
+          git pull --rebase origin dev
           git push origin testing
       - name: Synchronize dev with testing
         run: |
           git checkout dev
-          git pull origin testing
+          git pull --rebase origin testing
           git push origin dev
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
