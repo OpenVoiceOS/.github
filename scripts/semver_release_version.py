@@ -75,6 +75,8 @@ RESTRICT_TO_CYCLE = args.command == "cycle"
 if REPOSITORY is None and not (args.file or args.version):
     parser.error("either set up an environmental variable `GITHUB_REPOSITORY` or pass --version or --file as arguments")
 
+if RELEASE_TYPE == "alpha":
+    RELEASE_TYPE = "prerelease"
 
 class OVOSReleases(semver.Version):
     __history = []
