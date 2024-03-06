@@ -63,7 +63,7 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Check Latest Release
         run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --repo ${{ env.GITHUB_REPOSITORY }})
+          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest)
           echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
       - name: create release changelog (cropped)
         id: changelog

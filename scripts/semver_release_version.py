@@ -23,8 +23,9 @@ Options
 
 Args
     --type: str                # the release type to get the version for
-    --repo: str                # the github repo to get the version from
     --file: str                # the file to read the version from
+    --version: str             # the version to get the release for
+
     --save: str                # writes an ovos version file to the specified path (if the version is above the latest)
                                  if no path is provided and read from a file, the file will be overwritten
     --fsave: str               # force the ovos version file to be written even if the version is below the latest
@@ -52,7 +53,6 @@ def add_common_arguments(parser):
     release_group.add_argument("--first", action='store_true')
 
     input_group = parser.add_mutually_exclusive_group()
-    #input_group.add_argument("--repo")
     input_group.add_argument("--file")
     input_group.add_argument("--version")
 
