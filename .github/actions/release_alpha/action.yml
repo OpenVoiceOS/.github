@@ -37,8 +37,8 @@ runs:
     - name: Install Python Dependencies
       run: |
         pip install --upgrade pip
-        pip install -r ${{ github.workspace }}/action/github/scripts/requirements/pip_base.txt
-        pip install -r ${{ github.workspace }}/action/github/scripts/requirements/pip_build_tools.txt
+        pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+        pip install -r ${{ github.workspace }}/action/github/requirements/pip_build_tools.txt
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
