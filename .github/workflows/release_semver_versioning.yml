@@ -98,7 +98,7 @@ jobs:
             git rebase --abort
             git rebase -Xtheirs dev
           fi
-          git push origin testing
+          git push -f origin testing
       - name: Synchronize dev with testing
         run: |
           git checkout dev
@@ -107,7 +107,7 @@ jobs:
             git rebase --abort
             git rebase -Xours testing
           fi
-          git push origin dev
+          git push -f origin dev
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
