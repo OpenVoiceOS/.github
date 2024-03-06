@@ -49,6 +49,7 @@ jobs:
       - name: Checkout Package
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_PAT }}
           ref: dev
           fetch-depth: 0
           path: action/package
@@ -81,6 +82,7 @@ jobs:
       - name: Checkout Testing
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_PAT }}
           ref: testing
           fetch-depth: 0
           path: action/package
