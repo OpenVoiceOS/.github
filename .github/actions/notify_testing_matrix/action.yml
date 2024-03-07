@@ -4,33 +4,26 @@ inputs:
   matrix_token:
     description: 'The token to use to authenticate with the Matrix server'
     required: true
-  kickoff_pr:
-    description: 'Kick off pull request'
-    default: 'false'
+  # kickoff_pr:
+  #   description: 'Kick off pull request'
+  #   default: 'false'
   subject:
     description: 'Subject of the message'
     default: 'no subject'
   release_type:
     description: 'Type of the release'
     required: true
+  version:
+    description: 'The version of the release'
+    default: "version unknown"
 
 runs:
   using: 'composite'
   steps:
-    - name: Set message
-      shell: bash
-      run: |
-        if ${{ inputs.kickoff_pr == 'true' }}; then
-          MESSAGE="PR to kick off the testing QA phase of a ${{ inputs.release_type }} release ($GITHUB_REPOSITORY). Please merge if the testing phase should start. Subject to test: ${{ inputs.subject }}"
-        else
-          MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
-        fi
-        echo "MESSAGE=$MESSAGE" >> $GITHUB_ENV
-      id: message
     - name: Send message to Matrix
       uses: fadenb/matrix-chat-message@v0.0.6
       with:
         homeserver: 'matrix.org'
         token: ${{ inputs.matrix_token }}
         channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-        message: ${{ env.MESSAGE }}
+        message: "Testing QA phase of a ${{ inputs.release_type }} release (${{ inputs.version }}) started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"

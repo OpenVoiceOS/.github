@@ -4,36 +4,29 @@ name: Notify Matrix Chat
 on:
   workflow_call:
     inputs:
-      kickoff_pr:
-        type: boolean
-        default: true
+      # kickoff_pr:
+      #   type: boolean
+      #   default: true
       subject:
         type: string
         default: 'no subject'
       release_type:
         type: string
         required: true
+      version:
+        type: string
+        description: 'The version of the release'
+        default: 'version unknown'
 
 jobs:
   notify_pr_matrix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set message
-        shell: bash
-        run: |
-          if ${{ inputs.kickoff_pr == 'true' }}; then
-            MESSAGE="PR to kick off the testing QA phase of a ${{ inputs.release_type }} release ($GITHUB_REPOSITORY). Please merge if the testing phase should start. Subject to test: ${{ inputs.subject }}"
-          else
-            MESSAGE="Testing QA phase of a ${{ inputs.release_type }} release started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
-          fi
-          echo "MESSAGE=$MESSAGE" >> $GITHUB_ENV
-        id: message
       - name: Send message to Matrix bots channel
         uses: fadenb/matrix-chat-message@v0.0.6
-        # this action was triggered by
         with:
           homeserver: 'matrix.org'
           token: ${{ secrets.MATRIX_TOKEN }}
           channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-          message: ${{ env.MESSAGE }}
+          message: "Testing QA phase of a ${{ inputs.release_type }} release (${{ inputs.version }}) started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"

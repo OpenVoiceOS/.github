@@ -24,10 +24,10 @@ on:
         type: string
         description: 'Subject title of the push/pull request event to parse the release type.'
         required: false
-      kickoff_pr:
-        description: 'Whether to create a PR to mark the start of the testing phase or not'
-        type: string
-        default: 'false'
+      # kickoff_pr:
+      #   description: 'Whether to create a PR to mark the start of the testing phase or not'
+      #   type: string
+      #   default: 'false'
       locale_folder:
         type: string
         description: 'The folder location of the locale files'
@@ -221,71 +221,7 @@ jobs:
       - name: Install Common Python Requirements
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
-      - name: Check Latest Release
-        if: ${{ inputs.kickoff_pr == 'true' }}
-        run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py cycle --latest --type ${{ env.RELEASE_TYPE }})
-          if [ -z "$SINCE_TAG" ]; then
-            if [ "${{ env.RELEASE_TYPE }}" == "patch" ]; then
-                SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type minor)
-            elif [ "${{ env.RELEASE_TYPE }}" == "minor" ]; then
-              SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type major)
-            fi
-          fi
-          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --next --type ${{ env.RELEASE_TYPE }})
-          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
-      # if there is no testing branch, create one from the tag of the latest release or first commit
-      - name: Create testing Branch (if necessary)
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          TARGET_BRANCH_EXISTS=$(git ls-remote --heads origin ${{ env.TARGET_BRANCH }} | wc -l)
-          INITIAL_COMMIT=$(git rev-list --max-parents=0 ${{ inputs.branch }})
-          if [ "$TARGET_BRANCH_EXISTS" -eq "0" ]; then
-            if [ "$SINCE_TAG" == "0.0.0" ]; then
-              git checkout -b ${{ env.TARGET_BRANCH }} $INITIAL_COMMIT
-            else
-              git checkout -b ${{ env.TARGET_BRANCH }} tags/${{ env.SINCE_TAG }}
-            fi            
-            git push origin ${{ env.TARGET_BRANCH }} --force
-          fi
-      - name: create changelog
-        id: changelog
-        if: ${{ inputs.kickoff_pr == 'true' }}
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          sinceTag: ${{ env.SINCE_TAG }}
-      - name: Create Pull Request to ${{ env.TARGET_BRANCH }}
-        if: ${{ inputs.kickoff_pr == 'true'}}
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          gh pr create \
-          --title "ci(release): kickoff testing QA phase (${{ env.RELEASE_TYPE }} release est. ${{ env.NEXT_VERSION}})" \
-          --body "$(cat << EOF
-            This kicks off the testing QA phase of a ${{ env.RELEASE_TYPE }} release (est. ${{ env.NEXT_VERSION}}).
-            
-            Please merge if it the testing phase should start. Version gets bumped to the next ${{ env.RELEASE_TYPE }} version.
-            
-            (If there's the need to delay, after merging this PR recent changes gets automatically pulled to start the testing phase.)
-            
-            Included changes:
-            ${{ steps.changelog.outputs.changelog }}
-          EOF
-          )" \
-          --base ${{ env.TARGET_BRANCH }} \
-          --head dev \
-          --assignee ${{ github.actor }}
-      - name: Push to testing branch
-        if: ${{ inputs.kickoff_pr == 'false' }}
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          git checkout ${{ env.TARGET_BRANCH }}
-          git pull origin ${{ env.TARGET_BRANCH }}
-          git rebase ${{ inputs.branch }}
-          git push origin ${{ env.TARGET_BRANCH }}
       - name: Bump to next ${{ env.RELEASE_TYPE }} version
-        if: ${{ inputs.kickoff_pr == 'false' }}
         run: |
           cd ${{ github.workspace }}/action/package/
           git checkout ${{ inputs.branch }}
@@ -295,18 +231,21 @@ jobs:
           NEXT_VERSION=$( python semver_release_version.py --next --file ${{ env.VERSION_FILE }} --type ${{ env.RELEASE_TYPE }} --save )
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       - name: Push Version Change (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
-        if: ${{ inputs.kickoff_pr == 'false' }}
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Increment Version to ${{ env.NEXT_VERSION }}
           repository: action/package/
+      - name: Force Push dev to testing branch
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git push origin dev:testing --force
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
           matrix_token: ${{ secrets.MATRIX_TOKEN }}
-          kickoff_pr: ${{ inputs.kickoff_pr }}
           subject: ${{ inputs.subject }}
           release_type: ${{ env.RELEASE_TYPE }}
+          version: ${{ env.NEXT_VERSION }}
   # testing release
   # note: autotranslate as dependency requires the job running without restrictions!
   cherry_pick_testing:

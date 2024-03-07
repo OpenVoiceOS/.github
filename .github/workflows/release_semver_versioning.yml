@@ -73,5 +73,5 @@ jobs:
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
-          kickoff_pr: false
           release_type: ${{ env.RELEASE_TYPE }}
+          version: ${{ env.NEXT_VERSION }}
