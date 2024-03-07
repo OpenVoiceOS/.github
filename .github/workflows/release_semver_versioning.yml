@@ -79,36 +79,6 @@ jobs:
         with:
           commit_message: Increment Version to ${{ env.NEXT_VERSION }}
           repository: action/package/
-      - name: Checkout Testing
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_PAT }}
-          ref: testing
-          fetch-depth: 0
-          path: action/package
-      - name: Synchronize testing with dev
-        run: |
-          cd ${{ github.workspace }}/action/package
-          git checkout dev
-          git pull origin dev
-          git checkout testing
-          git pull origin testing
-          git rebase dev
-          if [ $? -ne 0 ]; then
-            git rebase --abort
-            git rebase -Xtheirs dev
-          fi
-          git push -f origin testing
-      - name: Synchronize dev with testing
-        run: |
-          cd ${{ github.workspace }}/action/package
-          git checkout dev
-          git rebase testing
-          if [ $? -ne 0 ]; then
-            git rebase --abort
-            git rebase -Xours testing
-          fi
-          git push -f origin dev
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
