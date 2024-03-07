@@ -190,6 +190,7 @@ jobs:
       TARGET_BRANCH: 'testing'
       GITHUB_REPOSITORY: ${{ github.repository }}
       GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      VERSION_FILE: ${{ github.workspace}}/action/package/${{ inputs.version_file }}
       RELEASE_TYPE: ${{ needs.parse_conventional_commits.outputs.release_type }}
       GH_PAT: ${{ secrets.GH_PAT }}
     steps:
