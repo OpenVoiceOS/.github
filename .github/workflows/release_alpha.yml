@@ -86,6 +86,7 @@ jobs:
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
+          unreleasedLabel: ${{ env.NEXT_VERSION }}
           sinceTag: ${{ env.VERSION }}
       - name: Create Pre-release
         id: create_release
