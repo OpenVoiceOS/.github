@@ -29,4 +29,4 @@ jobs:
           homeserver: 'matrix.org'
           token: ${{ secrets.MATRIX_TOKEN }}
           channel: '!WjxEKjjINpyBRPFgxl:krbel.duckdns.org'
-          message: "Testing QA phase of a ${{ inputs.release_type }} release (${{ inputs.version }}) started ($GITHUB_REPOSITORY). Subject to test: ${{ inputs.subject }}"
+          message: "Testing QA phase of a ${{ inputs.release_type }} release (${{ inputs.version }}) started (${{ github.repository }}). Subject to test: ${{ inputs.subject }}"
