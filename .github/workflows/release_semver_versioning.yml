@@ -101,6 +101,7 @@ jobs:
           git push -f origin testing
       - name: Synchronize dev with testing
         run: |
+          cd ${{ github.workspace }}/action/package
           git checkout dev
           git rebase testing
           if [ $? -ne 0 ]; then
