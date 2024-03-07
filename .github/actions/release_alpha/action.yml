@@ -104,7 +104,7 @@ runs:
       uses: heinrichreimer/github-changelog-generator-action@v2.3
       with:
         token: ${{ secrets.GH_PAT }}
-        output: ${{ inputs.changelog_file }}
+        output: action/package/${{ inputs.changelog_file }}
     - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
