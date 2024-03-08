@@ -1,8 +1,9 @@
 import os
 from os.path import join, dirname, isfile
-import re
-from github import Github, PullRequest
 import json
+from typing import List
+
+from github import Github, PullRequest
 import pccc
 
 TOKEN = os.getenv('GH_PAT') or os.getenv('GITHUB_TOKEN')
@@ -22,7 +23,7 @@ else:
     with open(test_phase_file, 'r') as f:
         ongoing_test = f.read().strip() == "testing"
 
-def check_for_labels(pull_request: PullRequest):
+def check_for_labels(pull_request: PullRequest) -> List[str]:
     global cc_missing
     
     ccr = pccc.ConventionalCommitRunner()
@@ -44,9 +45,9 @@ def check_for_labels(pull_request: PullRequest):
         if ccr.header.get("type") in PR_LABELS:
             labels.add(PR_LABELS.get(ccr.header["type"]))
         if ongoing_test:
-            labels.add("do no merge")
+            labels.add("do not merge")
         
-    return labels
+    return list(labels)
 
 
 git = Github(TOKEN).get_repo(REPOSITORY)
@@ -58,7 +59,7 @@ for pr in open_pulls:
     if PR_NUMBER and pr.number != int(PR_NUMBER):
         continue
     labels = check_for_labels(pr)
-    pr.set_labels(list(labels))
+    pr.set_labels(*labels)
 
 # nuke status check
 if (cc_missing and ERROR_ON_MISSING_CC) or ongoing_test:
