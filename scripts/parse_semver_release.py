@@ -35,12 +35,16 @@ def semver_from_cc():
         return "major"
     elif ccr.header.get("type") == "feat":
         return "minor"
-    elif ccr.header.get("type") == "fix" and ccr.header.get("scope") == "testing":
-        return "testing"
+    # commits that gets added to a release (special case)
+    elif ccr.header.get("type") == "release":
+        return "release"
     elif ccr.header.get("type") == "fix":
         return "patch"
-    else:
+    elif ccr.header.get("type") not in ["ci", "docs", "style", "test"]:
         return "alpha"
+    else:
+        print("No semver release.")
+        exit(0)
 
 def semver_from_version():
     try:

@@ -10,18 +10,36 @@ on:
         description: 'Branch to check out'
         type: string
         default: ${{ github.ref }}
+      action_branch:
+        description: 'Branch to check out'
+        type: string
+        default: main
+      custom_labels:
+        description: 'Custom labels to use'
+        type: string
+      pr_number:
+        description: 'Optional pull request number'
+        type: number
+      missing_cc_error:
+        description: 'Throws an error if the title not adheres to Conventional Commit format'
+        type: boolean
+        default: true
 
 jobs:
   validate-pr-title:
     runs-on: ${{ inputs.runner }}
+    env:
+      GH_PAT: ${{ secrets.GH_PAT }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      PR_LABELS: ${{ inputs.custom_labels }}
+      PR_NUMBER: ${{ inputs.pr_number }}
     steps:
-      - name: Checkout
+      - name: Checkout Scripts Repo
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
-      - name: PR Conventional Commit Validation
-        uses:  ytanikin/PRConventionalCommits@1.1.0
-        with:
-          token: ${{ secrets.GH_PAT }}
-          task_types: '["feat", "fix", "docs", "test", "ci", "refactor", "perf", "build", "chore", "revert"]'
-          custom_labels: '{"feat": "feature", "fix": "fix", "docs": "documentation", "test": "test", "ci": "CI/CD", "refactor": "refactor", "perf": "performance", "chore": "housekeeping", "revert": "revert", "wip": "WIP"}'
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+      - name: Status Check
+        run: |
+          python scripts/check_PRs.py
+        
