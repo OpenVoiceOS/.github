@@ -33,7 +33,7 @@ types = [
   "perf",
   "refactor",
   "revert",
-  "release
+  "release"
 ]
 
 scopes = [
