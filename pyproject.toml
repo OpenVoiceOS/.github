@@ -16,21 +16,24 @@ generated_commits = [
   '''^Merge branch 'master'.*$''',
 ]
 
-# not included "ci", "docs", "style", "test" as they dont get a release
-# 
 # chore -> alpha
 # fix -> patch
 # feat -> minor
 # in combination with "!" ("feat!:") or BREAKING CHANGE (in body/message) -> major
 
 types = [
+  "ci",
+  "docs",
+  "style",
+  "test",
   "chore",
   "build",
   "feat",
   "fix",
   "perf",
   "refactor",
-  "revert"
+  "revert",
+  "release
 ]
 
 scopes = [
@@ -46,9 +49,7 @@ scopes = [
   "nlp",
   "plugins",
   "localisation",
-  "resources",
-  "release",
-  "testing"
+  "resources"
 ]
 
 footers = [
