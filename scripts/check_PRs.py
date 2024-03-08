@@ -58,7 +58,7 @@ for pr in open_pulls:
     if PR_NUMBER and pr.number != int(PR_NUMBER):
         continue
     labels = check_for_labels(pr)
-    pr.set_labels(labels)
+    pr.set_labels(list(labels))
 
 # nuke status check
 if (cc_missing and ERROR_ON_MISSING_CC) or ongoing_test:
