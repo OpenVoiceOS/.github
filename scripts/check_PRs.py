@@ -11,7 +11,7 @@ PR_LABELS: dict = json.loads(os.getenv('PR_LABELS', '{}'))
 PR_NUMBER = os.getenv('PR_NUMBER')
 ERROR_ON_MISSING_CC = os.getenv('MISSING_CC_ERROR', 'true').lower() == 'true'
 if not PR_LABELS:
-    PR_LABELS = json.loads(open(join(dirname(dirname(__file__)), "PR_LABELS.json")).read())
+    PR_LABELS = json.loads(open(join(dirname(dirname(__file__)), "pr_labels.json")).read())
 
 test_phase_file = os.getenv('TEST_PHASE_FILE', '')
 if not isfile(test_phase_file):
