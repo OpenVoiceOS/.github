@@ -34,6 +34,8 @@ jobs:
       GITHUB_REPOSITORY: ${{ github.repository }}
       PR_LABELS: ${{ inputs.custom_labels }}
       PR_NUMBER: ${{ inputs.pr_number }}
+      MISSING_CC_ERROR: ${{ inputs.missing_cc_error }}
+      TEST_PHASE_CACHE: ${{ github.workspace }}/test-status
     steps:
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
@@ -44,6 +46,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r ${{ github.workspace }}/requirements/pip_base.txt
+      - name: Get Cached Test Status
+        uses: actions/cache@v2
+        with:
+          path: test-status
+          key: test-status-
       - name: Status Check
         run: |
           python scripts/check_PRs.py

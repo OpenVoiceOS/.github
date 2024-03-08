@@ -240,6 +240,17 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           git push origin dev:testing --force
+      # set cached test status to complete
+      - name: Set test status
+        run: |
+          echo "testing" > test-status
+      - name: Cache test status
+        uses: actions/cache@v2
+        with:
+          path: test-status
+          key: test-status-${{ github.run_id }}
+          restore-keys: |
+            test-status-
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:

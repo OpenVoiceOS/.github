@@ -14,13 +14,13 @@ ERROR_ON_MISSING_CC = os.getenv('MISSING_CC_ERROR', 'true').lower() == 'true'
 if not PR_LABELS:
     PR_LABELS = json.loads(open(join(dirname(dirname(__file__)), "pr_labels.json")).read())
 
-test_phase_file = os.getenv('TEST_PHASE_FILE', '')
-if not isfile(test_phase_file):
+test_phase_cache = os.getenv('TEST_PHASE_CACHE', '')
+if not isfile(test_phase_cache):
     ongoing_test = False
-    if test_phase_file:
+    if test_phase_cache:
         print("The file specified in TEST_PHASE_FILE does not exist.")
 else:
-    with open(test_phase_file, 'r') as f:
+    with open(test_phase_cache, 'r') as f:
         ongoing_test = f.read().strip() == "testing"
 
 def check_for_labels(pull_request: PullRequest) -> List[str]:
