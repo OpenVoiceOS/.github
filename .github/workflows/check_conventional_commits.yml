@@ -17,6 +17,7 @@ on:
       custom_labels:
         description: 'Custom labels to use'
         type: string
+        default: '{}'
       pr_number:
         description: 'Optional pull request number'
         type: number
