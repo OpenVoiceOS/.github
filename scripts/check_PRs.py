@@ -45,7 +45,7 @@ def check_for_labels(pull_request: PullRequest) -> List[str]:
         if ccr.header.get("type") in PR_LABELS:
             labels.add(PR_LABELS.get(ccr.header["type"]))
         if ongoing_test:
-            labels.add("do not merge")
+            labels.add("ongoing test")
         
     return list(labels)
 
