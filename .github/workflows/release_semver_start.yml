@@ -168,7 +168,7 @@ jobs:
   # alpha release (+ testing)
   alpha_release:
     needs: [parse_conventional_commits, autotranslate]
-    if: (contains(fromJson('["patch", "minor", "major", "alpha", "release"]'), needs.parse_conventional_commits.outputs.release_type)) || (contains(fromJson('["patch", "minor", "major", "alpha"]'), inputs.release_type))
+    if: (contains(fromJson('["patch", "minor", "major", "alpha"]'), needs.parse_conventional_commits.outputs.release_type)) || (contains(fromJson('["patch", "minor", "major", "alpha"]'), inputs.release_type))
     uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
     secrets: inherit
     with:
@@ -176,7 +176,6 @@ jobs:
       version_file: ${{ inputs.version_file }}
       python_version: ${{ inputs.python_version }}
       changelog_file: ${{ inputs.changelog_file }}
-      release_type: ${{ needs.parse_conventional_commits.outputs.release_type == 'release' && needs.parse_conventional_commits.outputs.release_type || 'alpha' }}
   # >= patch release
   kickoff_testing:
     needs: [parse_conventional_commits, alpha_release, autotranslate]
@@ -275,24 +274,41 @@ jobs:
           ref: testing
           path: action/package/testing/
       # based on the workflow run, set the number of commits to cherry pick
-      # testing PRs/pushes get an alpha release for sure
+      # note: merge commits are filtered
+      # note: the list of commits to cherrypick will be reversed, subsequent processes can use it right away
       - name: set commits num to cherry pick
         run: |
           COMMITS = 1
           if [ "${{ needs.parse_conventional_commits.outputs.was_pr }}" == "true" ]; then
-            COMMITS = $((COMMITS + 2))
-          else
             COMMITS = $((COMMITS + 1))
-          fi
           if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
             COMMITS = $((COMMITS + 1))
           fi
-          echo "COMMITS=${COMMITS}" >> $GITHUB_ENV
+          CHERRYPICK_SHA=""
+          while read sha
+          do
+              if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
+                  CHERRYPICK_SHA="$CHERRYPICK_SHA $sha"
+              fi
+          done < <(git log -n 4 --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          echo "CHERRYPICK_SHA=${CHERRYPICK_SHA}" >> $GITHUB_ENV
+      - name: Release
+        uses: openvoiceos/.github/.github/actions/release_alpha@feat/shared_actions1
+        with:
+          action_branch: ${{ inputs.action_branch }}
+          version_file: ${{ inputs.version_file }}
+          python_version: ${{ inputs.python_version }}
+          changelog_file: ${{ inputs.changelog_file }}
+          release_type: release
+          cherrypick_sha: ${{ env.CHERRYPICK_SHA }}
       - name: Cherry pick n last commit from dev
         run: |
-          cd action/package/testing/
-          git cherry-pick $(git -C ../dev log -n ${{ env.COMMITS }} --pretty=format:"%H")
+          cd ${{ github.workspace }}/action/package/dev/
+          git fetch origin dev
+          LOG_BUMP_SHA=$(git log -n 1 --pretty=format:"%H")
+          cd ${{ github.workspace }}/action/package/testing/
+          git cherry-pick ${{ env.CHERRYPICK_SHA }} "$LOG_BUMP_SHA"
       - name: Push changes to testing branch
         run: |
-          cd action/package/testing/
+          cd ${{ github.workspace }}/action/package/testing/
           git push origin testing
