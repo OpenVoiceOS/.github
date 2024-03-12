@@ -22,10 +22,10 @@ on:
         description: 'Optional pull request number'
         type: string
         default: ''
-      missing_cc_error:
-        description: 'Throws an error if the title not adheres to Conventional Commit format'
+      error_on_failure:
+        description: 'Throws an error if the title not adheres to Conventional Commit format or testing phase is ongoing'
         type: boolean
-        default: true
+        default: false
 
 jobs:
   validate-pr-title:
@@ -35,7 +35,7 @@ jobs:
       GITHUB_REPOSITORY: ${{ github.repository }}
       PR_LABELS: ${{ inputs.custom_labels }}
       PR_NUMBER: ${{ inputs.pr_number }}
-      MISSING_CC_ERROR: ${{ inputs.missing_cc_error }}
+      ERROR_ON_FAILURE: ${{ inputs.error_on_failure }}
       TEST_PHASE_CACHE: ${{ github.workspace }}/test-status
     steps:
       - name: Checkout Scripts Repo
