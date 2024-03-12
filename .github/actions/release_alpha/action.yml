@@ -47,7 +47,7 @@ runs:
     # testing specific steps. Those releases belong to the previous release cycle
     # to be included in the major/minor/patch release we have to step down to the last release tag and increase from there
     - name: Checkout At Tag And Cherry Pick
-      if: ${{ inputs.release_type == 'testing' }}
+      if: ${{ inputs.release_type == 'release' }}
       run: |
         cd ${{ github.workspace }}/action/package/
         LAST_COMMIT_SHA=$(git rev-parse dev)

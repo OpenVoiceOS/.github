@@ -33,11 +33,12 @@ def semver_from_cc():
 
     if ccr.breaking.get("flag") or ccr.breaking.get("token"):
         return "major"
+    # commits that gets added to a release (special case)
+    elif ccr.header.get("type") == "release" or \
+            ccr.header.get("scope") == "release":
+        return "release"
     elif ccr.header.get("type") == "feat":
         return "minor"
-    # commits that gets added to a release (special case)
-    elif ccr.header.get("type") == "release":
-        return "release"
     elif ccr.header.get("type") == "fix":
         return "patch"
     elif ccr.header.get("type") not in ["ci", "docs", "style", "test"]:

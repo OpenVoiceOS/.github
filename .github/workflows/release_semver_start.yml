@@ -168,7 +168,7 @@ jobs:
   # alpha release (+ testing)
   alpha_release:
     needs: [parse_conventional_commits, autotranslate]
-    if: (contains(fromJson('["patch", "minor", "major", "alpha", "testing"]'), needs.parse_conventional_commits.outputs.release_type)) || (contains(fromJson('["patch", "minor", "major", "alpha"]'), inputs.release_type))
+    if: (contains(fromJson('["patch", "minor", "major", "alpha", "release"]'), needs.parse_conventional_commits.outputs.release_type)) || (contains(fromJson('["patch", "minor", "major", "alpha"]'), inputs.release_type))
     uses: openvoiceos/.github/.github/workflows/release_alpha.yml@feat/shared_actions1
     secrets: inherit
     with:
@@ -176,7 +176,7 @@ jobs:
       version_file: ${{ inputs.version_file }}
       python_version: ${{ inputs.python_version }}
       changelog_file: ${{ inputs.changelog_file }}
-      release_type: ${{ needs.parse_conventional_commits.outputs.release_type == 'testing' && needs.parse_conventional_commits.outputs.release_type || 'alpha' }}
+      release_type: ${{ needs.parse_conventional_commits.outputs.release_type == 'release' && needs.parse_conventional_commits.outputs.release_type || 'alpha' }}
   # >= patch release
   kickoff_testing:
     needs: [parse_conventional_commits, alpha_release, autotranslate]
@@ -258,7 +258,7 @@ jobs:
   # note: autotranslate as dependency requires the job running without restrictions!
   cherry_pick_testing:
     needs: [parse_conventional_commits, alpha_release, autotranslate]
-    if: ${{ needs.parse_conventional_commits.outputs.release_type == 'testing' }}
+    if: ${{ needs.parse_conventional_commits.outputs.release_type == 'release' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
