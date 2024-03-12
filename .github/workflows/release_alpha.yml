@@ -54,6 +54,7 @@ jobs:
         with:
           ref: ${{ env.SOURCE_BRANCH }}
           path: action/package/
+          fetch-depth: 0
       # testing specific steps. Those releases belong to the previous release cycle
       # to be included in the major/minor/patch release we have to step down to the last release tag and increase from there
       - name: Checkout At Tag And Cherry Pick
