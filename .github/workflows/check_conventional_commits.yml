@@ -20,7 +20,8 @@ on:
         default: '{}'
       pr_number:
         description: 'Optional pull request number'
-        type: number
+        type: string
+        default: ''
       missing_cc_error:
         description: 'Throws an error if the title not adheres to Conventional Commit format'
         type: boolean

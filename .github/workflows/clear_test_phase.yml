@@ -1,0 +1,18 @@
+on:
+  workflow_call:
+
+jobs:
+  clear_test_flag:
+    runs-on: ubuntu-latest
+    # set cached test status to complete
+    steps:
+      - name: Set test status
+        run: |
+          echo "complete" > test-status
+      - name: Cache test status
+        uses: actions/cache@v2
+        with:
+          path: test-status
+          key: test-status-${{ github.run_id }}
+          restore-keys: |
+            test-status-
