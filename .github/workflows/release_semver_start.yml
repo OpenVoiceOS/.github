@@ -256,7 +256,7 @@ jobs:
   # testing release
   # note: autotranslate as dependency requires the job running without restrictions!
   cherry_pick_testing:
-    needs: [parse_conventional_commits, alpha_release, autotranslate]
+    needs: [parse_conventional_commits, autotranslate]
     if: ${{ needs.parse_conventional_commits.outputs.release_type == 'release' }}
     runs-on: ubuntu-latest
     steps:
