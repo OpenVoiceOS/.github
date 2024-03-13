@@ -266,14 +266,13 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
           ref: dev
-          path: action/package/dev/
-      - name: Checkout testing branch
+          path: action/package/
+      - name: Checkout Scripts Repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}
-          fetch-depth: 0
-          ref: testing
-          path: action/package/testing/
+          repository: OpenVoiceOS/.github
+          ref: ${{ inputs.action_branch }}
+          path: action/github/
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -289,6 +288,7 @@ jobs:
       - name: get commit shas to cherry pick
         id: get_commit_sha
         run: |
+          cd ${{ github.workspace }}/action/package/
           COMMITS=1
           if [ "${{ needs.parse_conventional_commits.outputs.was_pr }}" == "true" ]; then
             COMMITS=$((COMMITS + 2))
@@ -304,40 +304,39 @@ jobs:
               if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
                   COMMIT_SHA="$COMMIT_SHA $sha"
               fi
-          done < <(git -C ${{ github.workspace}}/action/package/dev log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Versioning
         run: |
-          cd ${{ github.workspace }}/action/package/testing/
+          cd ${{ github.workspace }}/action/package/
+          git checkout testing
           TEST_VERSION=$(python setup.py --version)
           VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --last)
           NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
-      - name: Change Directory
-        run: |
-          cd ${{ github.workspace }}/action/package/dev/
+          git checkout dev
       - name: Generate Full Changelog
         id: full_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
-          output: action/package/dev/${{ inputs.changelog_file }}
+          output: action/package/${{ inputs.changelog_file }}
           futureRelease: ${{ env.NEXT_VERSION}}
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
-          repository: action/package/dev/
+          repository: action/package/
       - name: Checkout At Tag And Cherry Pick
         run: |
-          cd ${{ github.workspace }}/action/package/testing
+          cd ${{ github.workspace }}/action/package/
           git checkout -b temp-branch "tags/$VERSION"
           git cherry-pick "${{ env.COMMIT_SHA }}"
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
       - name: Generate Release Changelog (cropped)
-        id: changelog
+        id: release_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
@@ -352,13 +351,13 @@ jobs:
           name: Release ${{ env.NEXT_VERSION }}
           body: |
             Changes in this Release
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.release_changelog.outputs.changelog }}
           commit: ${{ env.CHERRYPICKED_SHA}}
           prerelease: true
       - name: Build Distribution Packages
         run: |
           mkdir -p ${{ github.workspace }}/action/dist
-          cd ${{ github.workspace }}/action/package/testing/
+          cd ${{ github.workspace }}/action/package/
           python setup.py sdist bdist_wheel --dist-dir ${{ github.workspace }}/action/dist
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -367,5 +366,5 @@ jobs:
           packages-dir: action/dist/
       - name: Push changes to testing branch
         run: |
-          cd ${{ github.workspace }}/action/package/testing/
+          cd ${{ github.workspace }}/action/package/
           git push --force origin testing
