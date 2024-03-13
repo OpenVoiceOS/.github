@@ -263,6 +263,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_PAT }}
           fetch-depth: 0
           ref: dev
           path: action/package/dev/
@@ -273,42 +274,98 @@ jobs:
           fetch-depth: 0
           ref: testing
           path: action/package/testing/
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python_version }}
+      - name: Install Python Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
+          pip install -r ${{ github.workspace }}/action/github/requirements/pip_build_tools.txt
       # based on the workflow run, set the number of commits to cherry pick
       # note: merge commits are filtered
       # note: the list of commits to cherrypick will be reversed, subsequent processes can use it right away
-      - name: set commits num to cherry pick
+      - name: get commit shas to cherry pick
+        id: get_commit_sha
         run: |
-          COMMITS = 1
+          COMMITS=1
           if [ "${{ needs.parse_conventional_commits.outputs.was_pr }}" == "true" ]; then
-            COMMITS = $((COMMITS + 1))
-          if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
-            COMMITS = $((COMMITS + 1))
+            COMMITS=$((COMMITS + 2))
+          else
+            COMMITS=$((COMMITS + 1))
           fi
-          CHERRYPICK_SHA=""
+          if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
+            COMMITS=$((COMMITS + 1))
+          fi
+          COMMIT_SHA=""
           while read sha
           do
               if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
-                  CHERRYPICK_SHA="$CHERRYPICK_SHA $sha"
+                  COMMIT_SHA="$COMMIT_SHA $sha"
               fi
-          done < <(git log -n 4 --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
-          echo "CHERRYPICK_SHA=${CHERRYPICK_SHA}" >> $GITHUB_ENV
-      - name: Release
-        uses: openvoiceos/.github/.github/actions/release_alpha@feat/shared_actions1
-        with:
-          action_branch: ${{ inputs.action_branch }}
-          version_file: ${{ inputs.version_file }}
-          python_version: ${{ inputs.python_version }}
-          changelog_file: ${{ inputs.changelog_file }}
-          release_type: release
-          cherrypick_sha: ${{ env.CHERRYPICK_SHA }}
-      - name: Cherry pick n last commit from dev
+          done < <(git -C ${{ github.workspace}}/action/package/dev log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
+      - name: Versioning
+        run: |
+          cd ${{ github.workspace }}/action/package/testing/
+          TEST_VERSION=$(python setup.py --version)
+          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --last)
+          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+      - name: Change Directory
         run: |
           cd ${{ github.workspace }}/action/package/dev/
-          git fetch origin dev
-          LOG_BUMP_SHA=$(git log -n 1 --pretty=format:"%H")
+      - name: Generate Full Changelog
+        id: full_changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          output: action/package/dev/${{ inputs.changelog_file }}
+          futureRelease: ${{ env.NEXT_VERSION}}
+      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
+          repository: action/package/dev/
+      - name: Checkout At Tag And Cherry Pick
+        run: |
+          cd ${{ github.workspace }}/action/package/testing
+          git checkout -b temp-branch "tags/$VERSION"
+          git cherry-pick "${{ env.COMMIT_SHA }}"
+          CHERRYPICKED_SHA=$(git rev-parse HEAD)
+          echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
+      - name: Generate Release Changelog (cropped)
+        id: changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          unreleasedOnly: true
+          futureRelease: ${{ env.NEXT_VERSION}}
+      - name: Create Pre-release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GH_PAT }}
+          tag: ${{ env.NEXT_VERSION }}
+          name: Release ${{ env.NEXT_VERSION }}
+          body: |
+            Changes in this Release
+            ${{ steps.changelog.outputs.changelog }}
+          commit: ${{ env.CHERRYPICKED_SHA}}
+          prerelease: true
+      - name: Build Distribution Packages
+        run: |
+          mkdir -p ${{ github.workspace }}/action/dist
           cd ${{ github.workspace }}/action/package/testing/
-          git cherry-pick ${{ env.CHERRYPICK_SHA }} "$LOG_BUMP_SHA"
+          python setup.py sdist bdist_wheel --dist-dir ${{ github.workspace }}/action/dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{secrets.PYPI_TOKEN}}
+          packages-dir: action/dist/
       - name: Push changes to testing branch
         run: |
           cd ${{ github.workspace }}/action/package/testing/
-          git push origin testing
+          git push --force origin testing
