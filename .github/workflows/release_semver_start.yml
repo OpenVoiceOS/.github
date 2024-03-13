@@ -41,7 +41,7 @@ jobs:
   parse_conventional_commits:
     outputs:
       release_type: ${{ steps.parse.outputs.release_type }}
-      was_pr: ${{ steps.parse.outputs.was_pr }}
+      was_pr: ${{ steps.pr_check.outputs.was_pr }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Package Repo
@@ -69,6 +69,7 @@ jobs:
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
       # check if the last commit was due to a PR merge (needed below)
       - name: PR merge?
+        id: pr_check
         run: |
           cd  ${{ github.workspace }}/action/package/
           LAST_COMMIT_SHA=$(git rev-parse HEAD)
@@ -301,9 +302,13 @@ jobs:
           COMMIT_SHA=""
           while read sha
           do
-              if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
-                  COMMIT_SHA="$COMMIT_SHA $sha"
+            if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
+              if [ -z "$COMMIT_SHA" ]; then
+                COMMIT_SHA="$sha"
+              else
+                COMMIT_SHA="$COMMIT_SHA $sha"
               fi
+            fi
           done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Versioning
