@@ -322,8 +322,9 @@ jobs:
           if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
             COMMITS=$((COMMITS + 1))
           fi
-          echo "Cherry-picking $COMMITS commits"
           COMMIT_SHA=""
+          ALL_SHA=$(git log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          echo "Considerring $COMMITS commits: $ALL_SHA"
           while read sha
           do
             if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
@@ -335,8 +336,8 @@ jobs:
             else
               echo "Skipping merge commit $sha"
             fi
-          done < <(git log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
-          echo "Cherry-picking commits: $COMMIT_SHA"
+          done <<< "$ALL_SHA"
+          echo "Filtered (non-merge) commits: $COMMIT_SHA"
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Checkout At Tag And Cherry Pick
         run: |
