@@ -322,13 +322,19 @@ jobs:
           if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
             COMMITS=$((COMMITS + 1))
           fi
+          echo "Commit History (max. 10):"
+          echo "--------------"
+          git log --pretty=format:"%h %s" -s HEAD --max-count=10
+          echo "--------------"
           COMMIT_SHA=""
-          ALL_SHA=$(git log -n "$COMMITS" --pretty=format:"%H")
-          echo "Git SHA: $(echo $ALL_SHA | tr '\n' ' ')"
-          ALL_SHA=$(echo $ALL_SHA | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          ALL_SHA=$(git log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
           echo "Considerring $COMMITS commits: $(echo $ALL_SHA | tr '\n' ' ')"
+          echo "HEAD: $(git rev-parse HEAD)"
           while read sha
           do
+            echo "--------------"
+            echo "SHA: $sha"
+            echo "Parents: $(git rev-list --parents -n 1 $sha)"
             if [ $(git rev-list --parents -n 1 $sha | wc -w) -le 2 ]; then
               if [ -z "$COMMIT_SHA" ]; then
                 COMMIT_SHA="$sha"
