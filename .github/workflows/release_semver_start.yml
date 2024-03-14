@@ -283,6 +283,28 @@ jobs:
           pip install --upgrade pip
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_build_tools.txt
+      - name: Versioning
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git checkout testing
+          TEST_VERSION=$(python setup.py --version)
+          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
+          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
+          git checkout dev
+      - name: Generate Full Changelog
+        id: full_changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          output: action/package/${{ inputs.changelog_file }}
+          futureRelease: ${{ env.NEXT_VERSION}}
+      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
+          repository: action/package/
       # based on the workflow run, set the number of commits to cherry pick
       # note: merge commits are filtered
       # note: the list of commits to cherrypick will be reversed, subsequent processes can use it right away
@@ -311,28 +333,6 @@ jobs:
             fi
           done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
-      - name: Versioning
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          git checkout testing
-          TEST_VERSION=$(python setup.py --version)
-          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
-          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
-          git checkout dev
-      - name: Generate Full Changelog
-        id: full_changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          output: action/package/${{ inputs.changelog_file }}
-          futureRelease: ${{ env.NEXT_VERSION}}
-      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
-          repository: action/package/
       - name: Checkout At Tag And Cherry Pick
         run: |
           cd ${{ github.workspace }}/action/package/
