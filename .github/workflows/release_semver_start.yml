@@ -337,7 +337,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           git checkout -b temp-branch "tags/$VERSION"
-          git cherry-pick "${{ env.COMMIT_SHA }}"
+          git cherry-pick ${{ env.COMMIT_SHA }}
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
       - name: Generate Release Changelog (cropped)

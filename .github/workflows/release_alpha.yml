@@ -72,7 +72,7 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
           git checkout "tags/$VERSION"
-          git cherry-pick "${{ inputs.cherrypick_sha }}"
+          git cherry-pick ${{ inputs.cherrypick_sha }}
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
       - name: Increment Version
@@ -87,12 +87,24 @@ jobs:
       - name: change working directory
         run: cd ${{ github.workspace }}/action/package/
       - name: Generate Release Changelog (cropped)
-        id: changelog
+        id: release_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
           unreleasedLabel: ${{ env.NEXT_VERSION }}
           sinceTag: ${{ env.VERSION }}
+      - name: Generate Full Changelog
+        id: full_changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        with:
+          token: ${{ secrets.GH_PAT }}
+          futureRelease: ${{ env.NEXT_VERSION}}
+          output: action/package/${{ inputs.changelog_file }}
+      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
+          repository: action/package/
       - name: Create Pre-release
         id: create_release
         uses: ncipollo/release-action@v1
@@ -102,7 +114,7 @@ jobs:
           name: Release ${{ env.NEXT_VERSION }}
           body: |
             Changes in this Release
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.release_changelog.outputs.changelog }}
           commit: ${{ env.CHERRYPICKED_SHA || 'dev' }}
           prerelease: true
       - name: Build Distribution Packages
@@ -115,14 +127,3 @@ jobs:
         with:
           password: ${{secrets.PYPI_TOKEN}}
           packages-dir: action/dist/
-      - name: Generate Full Changelog
-        id: full_changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          output: action/package/${{ inputs.changelog_file }}
-      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
-          repository: action/package/
