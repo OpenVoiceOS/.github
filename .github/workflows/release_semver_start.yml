@@ -307,11 +307,12 @@ jobs:
           repository: action/package/
       # based on the workflow run, set the number of commits to cherry pick
       # note: merge commits are filtered
-      # note: the list of commits to cherrypick will be reversed, subsequent processes can use it right away
       - name: get commit shas to cherry pick
         id: get_commit_sha
         run: |
           cd ${{ github.workspace }}/action/package/
+          git checkout dev
+          git pull origin dev
           COMMITS=1
           if [ "${{ needs.parse_conventional_commits.outputs.was_pr }}" == "true" ]; then
             COMMITS=$((COMMITS + 2))
@@ -331,8 +332,10 @@ jobs:
               else
                 COMMIT_SHA="$COMMIT_SHA $sha"
               fi
+            else
+              echo "Skipping merge commit $sha"
             fi
-          done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tac)
+          done < <(git log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
           echo "Cherry-picking commits: $COMMIT_SHA"
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Checkout At Tag And Cherry Pick
