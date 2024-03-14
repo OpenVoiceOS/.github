@@ -316,7 +316,7 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           git checkout testing
           TEST_VERSION=$(python setup.py --version)
-          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --last)
+          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
           NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
