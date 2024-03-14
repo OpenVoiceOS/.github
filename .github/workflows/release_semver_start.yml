@@ -241,7 +241,7 @@ jobs:
         run: |
           echo "testing" > test-status
       - name: Cache test status
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: test-status
           key: test-status-${{ github.run_id }}
