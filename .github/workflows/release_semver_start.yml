@@ -321,6 +321,7 @@ jobs:
           if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
             COMMITS=$((COMMITS + 1))
           fi
+          echo "Cherry-picking $COMMITS commits"
           COMMIT_SHA=""
           while read sha
           do
@@ -332,6 +333,7 @@ jobs:
               fi
             fi
           done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          echo "Cherry-picking commits: $COMMIT_SHA"
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Checkout At Tag And Cherry Pick
         run: |
