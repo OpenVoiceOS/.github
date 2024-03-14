@@ -332,7 +332,7 @@ jobs:
                 COMMIT_SHA="$COMMIT_SHA $sha"
               fi
             fi
-          done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }')
+          done < <(git log -n "$COMMITS" --pretty=format:"%H" origin/dev | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tac)
           echo "Cherry-picking commits: $COMMIT_SHA"
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Checkout At Tag And Cherry Pick
