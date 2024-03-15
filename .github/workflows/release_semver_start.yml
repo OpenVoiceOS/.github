@@ -321,13 +321,15 @@ jobs:
           echo "Commit History (max. 10):"
           echo "--------------"
           git log --pretty=format:"%h %s" -s HEAD --max-count=10
-          echo "\n--------------"
+          echo -e "\n--------------"
           COMMIT_SHA=$(git log -n "$COMMITS" --pretty=format:"%H" --no-merges | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tr '\n' ' ')
           echo "Considerring $COMMITS (non-merge) commits to cherry pick: $COMMIT_SHA"
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Checkout At Tag And Cherry Pick
         run: |
           cd ${{ github.workspace }}/action/package/
+          git config user.name "EggmanBot"
+          git config user.email "jarbasai@mailfence.com"
           git checkout -b temp-branch "tags/$VERSION"
           git cherry-pick ${{ env.COMMIT_SHA }}
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
