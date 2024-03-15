@@ -292,6 +292,7 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           git checkout testing
           TEST_VERSION=$(python setup.py --version)
+          echo "TEST_VERSION=${TEST_VERSION}" >> $GITHUB_ENV
           VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
           NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
@@ -333,7 +334,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           git config user.name "EggmanBot"
-          git config user.email "jarbasai@mailfence.com"
+          git config user.email "openvoiceos@gmail.com"
           git checkout -b temp-branch "tags/$VERSION"
           git cherry-pick ${{ env.COMMIT_SHA }}
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
@@ -341,7 +342,7 @@ jobs:
       - name: Push changes to testing branch
         run: |
           cd ${{ github.workspace }}/action/package/
-          git push --force origin temp-branch:testing  
+          git push --force origin temp-branch:testing
       - name: Generate Release Changelog (cropped)
         id: release_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
@@ -349,6 +350,14 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           unreleasedOnly: true
           futureRelease: ${{ env.NEXT_VERSION}}
+      - name: (Re)Set Release Version
+        run: |
+          python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.TEST_VERSION }} --save ${{ env.VERSION_FILE }}
+      - name: Commit Release Version
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Increment Version to ${{ env.TEST_VERSION }}
+          repository: action/package/
       # not globally bumped, only for the release
       - name: Bump to next alpha version (for the release)
         run: |
