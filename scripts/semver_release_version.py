@@ -341,7 +341,7 @@ VERSION_ALPHA = {self.prerelease.replace(ALPHA_MARKER, '').replace('.', '') if s
             if cycle_only:
                 filtered_versions = filter(lambda v: v.major == self.major and v.minor == self.minor and v.patch == self.patch, filtered_versions)
         elif release_type is None:
-            filtered_versions = self.history[:]
+            filtered_versions = [v for v in self.history if v <= self]
             if cycle_only:
                 filtered_versions = filter(lambda v: v.major == self.major, filtered_versions)
         else:
