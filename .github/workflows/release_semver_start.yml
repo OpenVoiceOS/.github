@@ -345,6 +345,11 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           unreleasedOnly: true
           futureRelease: ${{ env.NEXT_VERSION}}
+      # not globally bumped, only for the release
+      - name: Bump to next alpha version (for the release)
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.NEXT_VERSION }} --save ${{ inputs.version_file }}
       - name: Create Pre-release
         id: create_release
         uses: ncipollo/release-action@v1

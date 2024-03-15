@@ -376,7 +376,8 @@ else:
 
 if (args.save or args.fsave) and version is not None:
     file = args.file or args.save or args.fsave
-    if version > base or args.fsave: 
+    if (version > base or args.fsave) or \
+            all( arg is False for arg in [args.first, args.last, args.next] ): 
         version.to_file(file)
 
 if version is not None:
