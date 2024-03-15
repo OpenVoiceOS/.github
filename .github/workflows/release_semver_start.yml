@@ -259,6 +259,10 @@ jobs:
   cherry_pick_testing:
     needs: [parse_conventional_commits, autotranslate]
     if: ${{ needs.parse_conventional_commits.outputs.release_type == 'release' }}
+    env:
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+      VERSION_FILE: ${{ github.workspace}}/action/package/${{ inputs.version_file }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -348,8 +352,7 @@ jobs:
       # not globally bumped, only for the release
       - name: Bump to next alpha version (for the release)
         run: |
-          cd ${{ github.workspace }}/action/package/
-          python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.NEXT_VERSION }} --save ${{ inputs.version_file }}
+          python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.NEXT_VERSION }} --save ${{ env.VERSION_FILE }}
       - name: Create Pre-release
         id: create_release
         uses: ncipollo/release-action@v1
