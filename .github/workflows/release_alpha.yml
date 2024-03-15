@@ -81,7 +81,7 @@ jobs:
         if: ${{ inputs.release_type == 'alpha' }}
         run: |
           cd ${{ github.workspace }}/action/github/scripts/
-          VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }})
+          VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }} --latest)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           NEXT_VERSION=$(python semver_release_version.py --next --type alpha --file ${{ env.VERSION_FILE }} --save)
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
