@@ -36,7 +36,7 @@ Flags
     --last                     # get the last release of that release type in the current cycle
     --next                     # get the next release of the upcoming release type
     --first                    # get the first release of that release type in the current cycle
-    none of above              # get the latest version released
+    --latest                   # get the latest version released
 """
 
 
@@ -108,18 +108,18 @@ class OVOSReleases(semver.Version):
         return f"{self.__prefix}{super().__str__()}"
     
     def next(self, rtype: Optional[str], alpha_marker: str = ALPHA_MARKER)\
-        -> Optional["OVOSReleases"]:
+        -> "OVOSReleases":
         rtype = rtype or "prerelease"
-        
-        return self.next_version(rtype, alpha_marker)
+        next_v = self.next_version(rtype, alpha_marker)
+        return OVOSReleases(next_v.major, next_v.minor, next_v.patch, next_v.prerelease, next_v.build)
     
-    def latest(self, rtype: Optional[str] = None) -> Optional["OVOSReleases"]:
+    def latest(self, rtype: Optional[str] = None) -> "OVOSReleases":
         if rtype and not self.history:
             raise ValueError("No release history")
         
         release_versions = self.filter_versions(rtype, RESTRICT_TO_CYCLE)
 
-        latest_version = None
+        latest_version = OVOSReleases(0, 0, 0)
         if rtype is None and (not self.history or not release_versions):
             latest_version = self
         elif release_versions:
@@ -127,25 +127,25 @@ class OVOSReleases(semver.Version):
         
         return latest_version
     
-    def last(self, rtype: Optional[str] = None) -> Optional["OVOSReleases"]:
+    def last(self, rtype: Optional[str] = None) -> "OVOSReleases":
         if not self.history:
             raise ValueError("No release history")
         
         release_versions = self.filter_versions(rtype, RESTRICT_TO_CYCLE)
 
-        last_version = None
+        last_version = OVOSReleases(0, 0, 0)
         if release_versions:
             last_version = release_versions[min(1, len(release_versions) - 1)]
         
         return last_version
 
-    def first(self, rtype: Optional[str] = None) -> Optional["OVOSReleases"]:
+    def first(self, rtype: Optional[str] = None) -> "OVOSReleases":
         if not self.history:
             raise ValueError("No release history")
         
         release_versions = self.filter_versions(rtype, RESTRICT_TO_CYCLE)
         
-        first_version = None
+        first_version = OVOSReleases(0, 0, 0)
         if release_versions:
             first_version = min(release_versions)
         
@@ -351,7 +351,7 @@ VERSION_ALPHA = {self.prerelease.replace(ALPHA_MARKER, '').replace('.', '') if s
 
 
 # instanciate the class	history
-releases = OVOSReleases.from_repo(REPOSITORY, getenv("GH_PAT"))
+releases = OVOSReleases.from_repo(REPOSITORY, getenv("GH_PAT") or getenv("GITHUB_TOKEN"))
 # if version or file is provided, get the version from the repository history or use the provided version
 if args.version or args.file:
     base = releases.get(args.version, args.file)
@@ -371,8 +371,10 @@ elif args.last:
     version = base.last(RELEASE_TYPE)
 elif args.next:
     version = base.next(RELEASE_TYPE)
-else:
+elif args.latest:
     version = base.latest(RELEASE_TYPE)
+else:
+    version = base
 
 if (args.save or args.fsave) and version is not None:
     file = args.file or args.save or args.fsave
