@@ -20,14 +20,11 @@ on:
         description: 'The file location to write the changelog to'
         type: string
         default: CHANGELOG.md
-      # internal workflow variables 
+      # release type other than alpha would need some semver foo
       release_type:
           description: 'The type of release to make'
           type: string
           default: alpha
-      cherrypick_sha:
-        description: 'the SHA(s) to cherry pick as a whitespace separated string'
-        type: string
       
 
 jobs:
@@ -61,29 +58,20 @@ jobs:
           ref: ${{ env.SOURCE_BRANCH }}
           path: action/package/
           fetch-depth: 0
-      # testing specific steps. Those releases belong to the previous release cycle
-      # to be included in the major/minor/patch release we have to step down to the last release tag and increase from there
-      - name: Checkout At Tag And Cherry Pick
-        if: ${{ inputs.release_type == 'release' }}
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          TEST_VERSION=$(python setup.py --version)
-          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
-          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
-          git checkout "tags/$VERSION"
-          git cherry-pick ${{ inputs.cherrypick_sha }}
-          CHERRYPICKED_SHA=$(git rev-parse HEAD)
-          echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
+      # note: "bump-prelease" is a special operation, as it doesn't preserve order
+      # normally the next prerelease version of 0.3.0 would be 0.3.1-a.1
+      # so we bump the patch/minor/major version and then add the prerelease 
       - name: Increment Version
         id: version
-        if: ${{ inputs.release_type == 'alpha' }}
         run: |
           cd ${{ github.workspace }}/action/github/scripts/
           VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }} --latest)
+          if [ "${{ inputs.release_type }}" != 'alpha' ]; then
+            NEXT_VERSION=$( python semver_release_version.py --next --type ${{ inputs.release_type }} --file ${{ env.VERSION_FILE }} --bump-prerelease --save)
+          else
+            NEXT_VERSION=$(python semver_release_version.py --next --type alpha --file ${{ env.VERSION_FILE }} --save)
+          fi
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          NEXT_VERSION=$(python semver_release_version.py --next --type alpha --file ${{ env.VERSION_FILE }} --save)
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       - name: change working directory
         run: cd ${{ github.workspace }}/action/package/
@@ -116,7 +104,7 @@ jobs:
           body: |
             Changes in this Release
             ${{ steps.release_changelog.outputs.changelog }}
-          commit: ${{ env.CHERRYPICKED_SHA || 'dev' }}
+          commit: dev
           prerelease: true
       - name: Build Distribution Packages
         run: |

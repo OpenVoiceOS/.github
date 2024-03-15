@@ -67,18 +67,6 @@ jobs:
       - name: Install Common Python Requirements
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
-      # check if the last commit was due to a PR merge (needed below)
-      - name: PR merge?
-        id: pr_check
-        run: |
-          cd  ${{ github.workspace }}/action/package/
-          LAST_COMMIT_SHA=$(git rev-parse HEAD)
-          PR_NUMBER=$(curl --silent --show-error --header "Authorization: Bearer ${{ secrets.GH_PAT }}" "https://api.github.com/repos/${{ github.repository }}/commits/${LAST_COMMIT_SHA}/pulls" | jq '.[0].number')
-          if [ -n "$PR_NUMBER" ]; then
-            echo "was_pr=true" >> $GITHUB_OUTPUT
-          else
-            echo "was_pr=false" >> $GITHUB_OUTPUT
-          fi
       - name: Parse Conventional Commits
         id: parse
         run: |
