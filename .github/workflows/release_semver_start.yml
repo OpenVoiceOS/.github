@@ -353,6 +353,7 @@ jobs:
       - name: (Re)Set Release Version
         run: |
           python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.TEST_VERSION }} --save ${{ env.VERSION_FILE }}
+          cd ${{ github.workspace }}/action/package/
           git commit -am "Increment Version to ${{ env.TEST_VERSION }}"
       - name: Push Release Version to testing branch
         run: |
