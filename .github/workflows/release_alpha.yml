@@ -37,6 +37,7 @@ jobs:
       VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
       SOURCE_BRANCH: ${{ inputs.release_type == 'alpha' && 'dev' || 'testing' }}
       GITHUB_REPOSITORY: ${{ github.repository }}
+      GH_PAT: ${{ secrets.GH_PAT }}
     steps:
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
