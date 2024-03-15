@@ -337,7 +337,7 @@ jobs:
       - name: Push changes to testing branch
         run: |
           cd ${{ github.workspace }}/action/package/
-          git push --force origin testing  
+          git push --force origin temp-branch:testing  
       - name: Generate Release Changelog (cropped)
         id: release_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
