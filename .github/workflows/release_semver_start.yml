@@ -334,6 +334,10 @@ jobs:
           git cherry-pick ${{ env.COMMIT_SHA }}
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
+      - name: Push changes to testing branch
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git push --force origin testing  
       - name: Generate Release Changelog (cropped)
         id: release_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
@@ -363,7 +367,3 @@ jobs:
         with:
           password: ${{secrets.PYPI_TOKEN}}
           packages-dir: action/dist/
-      - name: Push changes to testing branch
-        run: |
-          cd ${{ github.workspace }}/action/package/
-          git push --force origin testing
