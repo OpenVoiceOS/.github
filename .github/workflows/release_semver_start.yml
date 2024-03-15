@@ -353,12 +353,11 @@ jobs:
       - name: (Re)Set Release Version
         run: |
           python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.TEST_VERSION }} --save ${{ env.VERSION_FILE }}
-      - name: Commit Release Version
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: Increment Version to ${{ env.TEST_VERSION }}
-          repository: action/package/
-          branch: testing
+          git commit -am "Increment Version to ${{ env.TEST_VERSION }}"
+      - name: Push Release Version to testing branch
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          git push origin temp-branch:testing
       # not globally bumped, only for the release
       - name: Bump to next alpha version (for the release)
         run: |
