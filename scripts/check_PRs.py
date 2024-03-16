@@ -56,7 +56,6 @@ def parse_cc(desc: str) -> Optional[pccc.ConventionalCommitRunner]:
 
 
 def check_cc_labels(desc: str) -> List[str]:
-    global cc_missing
 
     labels = set()
     _type = cc_type(desc)

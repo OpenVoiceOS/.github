@@ -336,7 +336,6 @@ jobs:
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
-          unreleasedOnly: true
           futureRelease: ${{ env.NEXT_VERSION}}
           sinceTag: ${{ env.VERSION }}
       - name: (Re)Set and push Release Version
