@@ -60,7 +60,7 @@ jobs:
           fetch-depth: 0
       # note: "bump-prelease" is a special operation, as it doesn't preserve order
       # normally the next prerelease version of 0.3.0 would be 0.3.1-a.1
-      # so we bump the patch/minor/major version and then add the prerelease 
+      # so we bump the patch/minor/major version and then add the prerelease (0.3.0 -> 0.3.0-a.1)
       - name: Increment Version
         id: version
         run: |

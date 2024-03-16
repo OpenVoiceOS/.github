@@ -52,7 +52,7 @@ jobs:
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
       - name: Get Version
         run: |
-          VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
+          export VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
       - name: Parse Release Type
         run: |
@@ -62,11 +62,6 @@ jobs:
         run: |
           LATEST_RELEASE=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type ${{ env.RELEASE_TYPE }})
           echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_ENV
-      - name: Bump Changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          output: action/package/${{ inputs.changelog_file }}
       - name: create release changelog (cropped)
         id: changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
