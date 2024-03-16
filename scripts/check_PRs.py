@@ -88,9 +88,10 @@ for pr in open_pulls:
 
     # clear the test flag if the PR adresses a release. Ie. gets added to the test
     if SINGLE_PR:
-        if cc_type(pr_description) == "release":
+        if cc_type(pr_description) == "release" or \
+                cc_scope(pr_description) == "release":
             ongoing_test = False
-        elif cc_type(pr_description) == "unknown":
+        if cc_type(pr_description) == "unknown":
             cc_missing = True
 
 # nuke status check (if requested)
