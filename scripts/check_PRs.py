@@ -60,6 +60,7 @@ def check_cc_labels(desc: str) -> List[str]:
     labels = set()
     _type = cc_type(desc)
     _scope = cc_scope(desc)
+    test_relevant_cc = ["feat", "fix", "refactor", "breaking"]
     if _type == "unknown":
         return [PR_LABELS.get("need_cc", "CC missing")]
     if _type == "breaking":
@@ -68,7 +69,7 @@ def check_cc_labels(desc: str) -> List[str]:
         labels.add(PR_LABELS.get(_scope))
     if _type in PR_LABELS:
         labels.add(PR_LABELS.get(_type))
-    if ongoing_test and not any(t == "release" for t in [_type, _scope]):
+    if ongoing_test and any(t in test_relevant_cc for t in [_type, _scope]):
         labels.add("ongoing test")
         
     return list(labels)

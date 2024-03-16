@@ -39,7 +39,7 @@ def semver_from_cc():
         return "release"
     elif ccr.header.get("type") == "feat":
         return "minor"
-    elif ccr.header.get("type") == "fix":
+    elif ccr.header.get("type") in ["fix", "refactor"]:
         return "patch"
     elif ccr.header.get("type") not in ["ci", "docs", "style", "test"]:
         return "alpha"
