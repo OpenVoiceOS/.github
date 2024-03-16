@@ -292,7 +292,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           output: action/package/${{ inputs.changelog_file }}
-          futureRelease: ${{ env.NEXT_VERSION}}
+          futureRelease: ${{ env.NEXT_VERSION }}
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -336,7 +336,7 @@ jobs:
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
-          unreleasedLabel: ${{ env.NEXT_VERSION }}
+          futureRelease: ${{ env.NEXT_VERSION }}
           sinceTag: ${{ env.VERSION }}
       - name: (Re)Set and push Release Version
         run: |
