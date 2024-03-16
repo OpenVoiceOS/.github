@@ -329,8 +329,8 @@ jobs:
           echo "--------------"
           git log --pretty=format:"%h %s" -s HEAD --max-count=10
           echo -e "\n--------------"
-          COMMIT_SHA=$(git log -n "$COMMITS" --pretty=format:"%H" --no-merges | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tr '\n' ' ')
-          echo "Considerring $COMMITS (non-merge) commits to cherry pick: $COMMIT_SHA"
+          COMMIT_SHA=$(git log -n "$COMMITS" --pretty=format:"%H" | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tr '\n' ' ')
+          echo "Considerring $COMMITS commits to cherry pick: $COMMIT_SHA"
           echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_ENV
       - name: Checkout At Tag And Cherry Pick
         run: |
