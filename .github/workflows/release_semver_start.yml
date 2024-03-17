@@ -291,6 +291,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           output: action/package/${{ inputs.changelog_file }}
           futureRelease: ${{ env.NEXT_VERSION }}
+          verbose: true
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -324,7 +325,13 @@ jobs:
           git checkout -b temp-branch "tags/$VERSION"
           IFS=' ' read -ra ADDR <<< "${{ env.COMMIT_SHA }}"
           for i in "${ADDR[@]}"; do
-            git merge --allow-unrelated-histories --commit --no-ff $i
+            PARENTS_COUNT=$(git cat-file -p $i | grep -c parent)
+            if [ $PARENTS_COUNT -gt 1 ]
+            then
+              git cherry-pick -m 1 --allow-empty $i
+            else
+              git cherry-pick --allow-empty $i
+            fi
           done
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
