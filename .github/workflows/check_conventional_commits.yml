@@ -51,7 +51,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: test-status
-          key: test-status-
+          key: test-status-${{ github.run_id }}
           restore-keys: |
             test-status-
       - name: Status Check
