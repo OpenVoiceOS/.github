@@ -41,7 +41,7 @@ jobs:
   parse_conventional_commits:
     outputs:
       release_type: ${{ steps.parse.outputs.release_type }}
-      was_pr: ${{ steps.pr_check.outputs.was_pr }}
+      was_pr: ${{ steps.merge_check.outputs.was_pr }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Package Repo
@@ -338,7 +338,16 @@ jobs:
           git config user.name "EggmanBot"
           git config user.email "openvoiceos@gmail.com"
           git checkout -b temp-branch "tags/$VERSION"
-          git cherry-pick ${{ env.COMMIT_SHA }}
+          IFS=' ' read -ra ADDR <<< "${{ env.COMMIT_SHA }}"
+          for i in "${ADDR[@]}"; do
+            PARENTS_COUNT=$(git cat-file -p $i | grep -c parent)
+            if [ $PARENTS_COUNT -gt 1 ]
+            then
+              git cherry-pick -m 1 $i
+            else
+              git cherry-pick $i
+            fi
+          done
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
       - name: Push changes to testing branch
