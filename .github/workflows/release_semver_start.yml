@@ -343,8 +343,7 @@ jobs:
         run: |
           python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.TEST_VERSION }} --save ${{ env.VERSION_FILE }}
           cd ${{ github.workspace }}/action/package/
-          git commit -am "Increment Version to ${{ env.TEST_VERSION }}"
-          git push origin temp-branch:testing
+          git diff --exit-code || (git commit -am "Increment Version to ${{ env.TEST_VERSION }}" && git push origin temp-branch:testing)
       # not globally bumped, only for the release
       - name: Bump to next alpha version (for the release)
         run: |
