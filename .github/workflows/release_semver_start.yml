@@ -342,9 +342,9 @@ jobs:
             PARENTS_COUNT=$(git cat-file -p $i | grep -c parent)
             if [ $PARENTS_COUNT -gt 1 ]
             then
-              git cherry-pick -m 1 $i
+              git cherry-pick -m 1 --allow-empty $i
             else
-              git cherry-pick $i
+              git cherry-pick --allow-empty $i
             fi
           done
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
