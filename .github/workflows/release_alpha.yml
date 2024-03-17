@@ -82,12 +82,14 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           futureRelease: ${{ env.NEXT_VERSION }}
           sinceTag: ${{ env.VERSION }}
+          stripGeneratorNotice: true
       - name: Generate Full Changelog
         id: full_changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.3
         with:
           token: ${{ secrets.GH_PAT }}
           futureRelease: ${{ env.NEXT_VERSION}}
+          stripGeneratorNotice: true
           output: action/package/${{ inputs.changelog_file }}
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5

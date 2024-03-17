@@ -291,6 +291,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           output: action/package/${{ inputs.changelog_file }}
           futureRelease: ${{ env.NEXT_VERSION }}
+          stripGeneratorNotice: true
           verbose: true
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -346,6 +347,7 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           futureRelease: ${{ env.NEXT_VERSION }}
           sinceTag: ${{ env.VERSION }}
+          stripGeneratorNotice: true
       - name: (Re)Set and push Release Version
         run: |
           python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.TEST_VERSION }} --save ${{ env.VERSION_FILE }}

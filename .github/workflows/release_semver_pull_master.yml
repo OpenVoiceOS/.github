@@ -68,6 +68,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           sinceTag: ${{ env.LATEST_RELEASE }}
+          stripGeneratorNotice: true
       # if there is no master branch, create one from the tag of the latest release or first commit
       - name: Create Master Branch (if necessary)
         run: |

@@ -71,6 +71,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           sinceTag: ${{ env.SINCE_TAG }}
+          stripGeneratorNotice: true
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
