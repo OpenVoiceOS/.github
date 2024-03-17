@@ -244,7 +244,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: test-status
-          key: test-status-${{ github.run_id }}
+          key: test-status-${{ runner.os }}
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:

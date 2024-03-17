@@ -99,7 +99,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: test-status
-          key: test-status-${{ github.run_id }}
+          key: test-status-${{ runner.os }}
           restore-keys: |
             test-status-
       # NO REBASE APPROACH!!
