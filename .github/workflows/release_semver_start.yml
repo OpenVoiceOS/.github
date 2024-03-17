@@ -238,14 +238,13 @@ jobs:
       # set cached test status to active
       - name: Set test status
         run: |
+          cd ${{ github.workspace }}
           echo "testing" > test-status
       - name: Cache test status
-        uses: actions/cache@v4
+        uses: actions/cache/save@v4
         with:
           path: test-status
           key: test-status-${{ github.run_id }}
-          restore-keys: |
-            test-status-
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
