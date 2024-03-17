@@ -324,13 +324,7 @@ jobs:
           git checkout -b temp-branch "tags/$VERSION"
           IFS=' ' read -ra ADDR <<< "${{ env.COMMIT_SHA }}"
           for i in "${ADDR[@]}"; do
-            PARENTS_COUNT=$(git cat-file -p $i | grep -c parent)
-            if [ $PARENTS_COUNT -gt 1 ]
-            then
-              git cherry-pick -m 1 --allow-empty $i
-            else
-              git cherry-pick --allow-empty $i
-            fi
+            git merge --allow-unrelated-histories --commit --no-ff $i
           done
           CHERRYPICKED_SHA=$(git rev-parse HEAD)
           echo "CHERRYPICKED_SHA=${CHERRYPICKED_SHA}" >> $GITHUB_ENV
