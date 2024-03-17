@@ -74,9 +74,9 @@ jobs:
           LATEST_COMMIT_HASH=$(git rev-parse HEAD)
           PARENTS_COUNT=$(git cat-file -p $LATEST_COMMIT_HASH | grep -c parent)
           if [ $PARENTS_COUNT -gt 1 ]; then
-            echo "was_pr=true" >> $GITHUB_ENV
+            echo "was_pr=true" >> $GITHUB_OUTPUT
           else
-            echo "was_pr=false" >> $GITHUB_ENV
+            echo "was_pr=false" >> $GITHUB_OUTPUT
           fi
       - name: Parse Conventional Commits
         id: parse
