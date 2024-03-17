@@ -15,6 +15,7 @@ if not PR_LABELS:
     PR_LABELS = json.loads(open(join(dirname(dirname(__file__)), "pr_labels.json")).read())
 
 test_phase_cache = os.getenv('TEST_PHASE_CACHE', '')
+print(f"TEST_PHASE_CACHE: {test_phase_cache}")
 if not isfile(test_phase_cache):
     ongoing_test = False
     if test_phase_cache:
@@ -22,6 +23,7 @@ if not isfile(test_phase_cache):
 else:
     with open(test_phase_cache, 'r') as f:
         ongoing_test = f.read().strip() == "testing"
+        print(f"ongoing_test: {ongoing_test}")
 
 
 def cc_type(desc: str) -> str:
