@@ -22,8 +22,8 @@ if not isfile(test_phase_cache):
         print("The file specified in TEST_PHASE_FILE does not exist.")
 else:
     with open(test_phase_cache, 'r') as f:
+        print(f"file content: {f.read().strip()}")
         ongoing_test = f.read().strip() == "testing"
-        print(f"ongoing_test: {ongoing_test}")
 
 
 def cc_type(desc: str) -> str:
