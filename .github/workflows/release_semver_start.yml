@@ -345,7 +345,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
           futureRelease: ${{ env.NEXT_VERSION }}
-          unreleasedOnly: true
+          sinceTag: ${{ env.VERSION }}
       - name: (Re)Set and push Release Version
         run: |
           python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version ${{ env.TEST_VERSION }} --save ${{ env.VERSION_FILE }}
