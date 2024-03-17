@@ -18,7 +18,7 @@
     "core": "core",
     "audio": "audio",
     "tts": "TTS",
-    "sst": "STT",
+    "stt": "STT",
     "nlp": "NLP",
     "plugins": "plugins",
     "localisation": "localisation",
