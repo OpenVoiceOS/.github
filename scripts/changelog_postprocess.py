@@ -45,7 +45,6 @@ if not CHANGELOG_ITEMS in ["full", "latest", "current", "unreleased"]:
 
 escaped_json_string = escape_control_characters(CONTEXT)
 changelog_context = json.loads(escaped_json_string)
-last_message = None
 
 for entry in changelog_context:
     last_commit = None
@@ -62,7 +61,7 @@ for entry in changelog_context:
             # add to ignored commits (as the merge commit will be part of the changelog)
             with open(CLIFF_IGNORE_FILE, 'a') as f:
                 f.write(f"{last_commit['id']}\n")
-        last_message = message
+        last_commit = commit
 
 if not open(CLIFF_IGNORE_FILE, 'r').read():
     print("No commits to ignore. No need to postprocess.")
