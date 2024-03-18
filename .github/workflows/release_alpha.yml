@@ -80,7 +80,9 @@ jobs:
         uses: orhun/git-cliff-action@v3
         with:
           config: ${{ github.workspace }}/action/github/cliff.toml
-          args: --unreleased --prepend ${{ inputs.changelog_file }} --github-repo ${{ github.repository }} --github-token ${{ secrets.GH_PAT }} --tag ${{ env.NEXT_VERSION }}
+          args: --unreleased --prepend ${{ inputs.changelog_file }} --github-repo ${{ github.repository }} --github-token ${{ secrets.GH_PAT }} --t ${{ env.NEXT_VERSION }} --w ${{ github.workspace }}/action/package/
+        env:
+          OUTPUT: ${{ github.workspace }}/action/package/${{ inputs.changelog_file }}
       # - name: Generate Release Changelog (cropped)
       #   id: release_changelog
       #   uses: heinrichreimer/github-changelog-generator-action@v2.3
