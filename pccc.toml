@@ -43,7 +43,7 @@ scopes = [
   "core",
   "audio",
   "tts",
-  "sst",
+  "stt",
   "nlp",
   "plugins",
   "localisation",
