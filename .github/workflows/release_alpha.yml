@@ -75,22 +75,28 @@ jobs:
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       - name: change working directory
         run: cd ${{ github.workspace }}/action/package/
-      - name: Generate Release Changelog (cropped)
+      - name: Prepend changelog
         id: release_changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
+        uses: orhun/git-cliff-action@v3
         with:
-          token: ${{ secrets.GH_PAT }}
-          futureRelease: ${{ env.NEXT_VERSION }}
-          sinceTag: ${{ env.VERSION }}
-          stripGeneratorNotice: true
-      - name: Generate Full Changelog
-        id: full_changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          futureRelease: ${{ env.NEXT_VERSION}}
-          stripGeneratorNotice: true
-          output: action/package/${{ inputs.changelog_file }}
+          config: ${{ github.workspace }}/action/github/cliff.toml
+          args: --unreleased --prepend ${{ inputs.changelog_file }} --github-repo ${{ github.repository }} --github-token ${{ secrets.GH_PAT }} --tag ${{ env.NEXT_VERSION }}
+      # - name: Generate Release Changelog (cropped)
+      #   id: release_changelog
+      #   uses: heinrichreimer/github-changelog-generator-action@v2.3
+      #   with:
+      #     token: ${{ secrets.GH_PAT }}
+      #     futureRelease: ${{ env.NEXT_VERSION }}
+      #     sinceTag: ${{ env.VERSION }}
+      #     stripGeneratorNotice: true
+      # - name: Generate Full Changelog
+      #   id: full_changelog
+      #   uses: heinrichreimer/github-changelog-generator-action@v2.3
+      #   with:
+      #     token: ${{ secrets.GH_PAT }}
+      #     futureRelease: ${{ env.NEXT_VERSION}}
+      #     stripGeneratorNotice: true
+      #     output: action/package/${{ inputs.changelog_file }}
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
