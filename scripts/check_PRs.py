@@ -6,6 +6,12 @@ from typing import List, Optional
 from github import Github, PullRequest
 import pccc
 
+
+CONFIG_FILE = os.environ.get("PCCC_CONFIG_FILE")
+if CONFIG_FILE and not isfile(CONFIG_FILE):
+    print(f"Config file {CONFIG_FILE} not found.")
+    exit(1)
+
 TOKEN = os.getenv('GH_PAT') or os.getenv('GITHUB_TOKEN')
 REPOSITORY = os.getenv('GITHUB_REPOSITORY')
 PR_LABELS: dict = json.loads(os.getenv('PR_LABELS', '{}'))
@@ -47,7 +53,7 @@ def cc_scope(desc: str) -> str:
 
 def parse_cc(desc: str) -> Optional[pccc.ConventionalCommitRunner]:
     ccr = pccc.ConventionalCommitRunner()
-    ccr.options.load()
+    ccr.options.load((f"-o{CONFIG_FILE}",) if CONFIG_FILE else None)
     ccr.raw = desc
     ccr.clean()
     try:
