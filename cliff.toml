@@ -37,7 +37,7 @@ footer = """
 trim = true
 # postprocessors
 postprocessors = [
-  { pattern = '<REPO>', replace_command = 'sed "s#<REPO>#$GITHUB_REPOSITORY#"' },
+  { pattern = '<REPO>', replace_command = 'sed "s#<REPO>#$GITHUB_REPO#"' },
 ]
 
 [git]
