@@ -1,5 +1,7 @@
 import re
-from os import environ
+from os import environ, devnull
+from os.path import isfile
+import sys
 
 import pccc
 import semver
@@ -7,6 +9,15 @@ import semver
 """
 translates a conventional commit title/message into a semver version
 """
+
+
+CONFIG_FILE = environ.get("PCCC_CONFIG_FILE")
+if CONFIG_FILE and not isfile(CONFIG_FILE):
+    print(f"Config file {CONFIG_FILE} not found.")
+    exit(1)
+
+TITLE = environ.get("TITLE")
+BODY = environ.get("BODY")
 
 
 def get_version():
@@ -21,7 +32,17 @@ def get_version():
 
 def semver_from_cc():
     ccr = pccc.ConventionalCommitRunner()
-    ccr.options.load()
+    if CONFIG_FILE is None:
+        # Redirect stdout to null
+        original_stdout = sys.stdout
+        sys.stdout = open(devnull, 'w')
+
+    ccr.options.load((f"-o{CONFIG_FILE}",) if CONFIG_FILE else None)
+
+    if CONFIG_FILE is None:
+        # Restore original stdout
+        sys.stdout = original_stdout
+
     ccr.raw = f"{TITLE}\n{BODY}"
     ccr.clean()
     try:
@@ -62,9 +83,7 @@ def semver_from_version():
         return "minor"
     elif version.major != 0:
         return "major"
-    
-TITLE = environ.get("TITLE")
-BODY = environ.get("BODY")
+
 VERSION = get_version()
 
 if VERSION:

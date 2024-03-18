@@ -1,7 +1,5 @@
 # configuration keys for the Python Conventional Commit Checker
-[tool]
-
-[tool.pccc]
+[pccc]
 
 header_length = 50
 body_length = 72
@@ -26,14 +24,14 @@ types = [
   "docs",
   "style",
   "test",
+  "release",
   "chore",
   "build",
   "feat",
   "fix",
   "perf",
   "refactor",
-  "revert",
-  "release"
+  "revert"
 ]
 
 scopes = [
@@ -49,7 +47,9 @@ scopes = [
   "nlp",
   "plugins",
   "localisation",
-  "resources"
+  "resources",
+  "release",
+  "testing"
 ]
 
 footers = [

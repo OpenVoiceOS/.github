@@ -21,6 +21,7 @@ jobs:
     env:
       TARGET_BRANCH: 'master'
       GITHUB_REPOSITORY: ${{ github.repository }}
+      PCCC_CONFIG_FILE: ${{ github.workspace }}/action/github/pccc.toml
       GH_PAT: ${{ secrets.GH_PAT }}
     steps:
       - name: Checkout Repository
