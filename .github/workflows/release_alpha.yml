@@ -75,35 +75,29 @@ jobs:
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       - name: change working directory
         run: cd ${{ github.workspace }}/action/package/
-      - name: Prepend changelog
-        id: release_changelog
-        uses: orhun/git-cliff-action@v3
-        with:
-          config: action/github/cliff.toml
-          args: --unreleased --prepend action/package/${{ inputs.changelog_file }} --github-repo ${{ github.repository }} --github-token ${{ secrets.GH_PAT }} -t ${{ env.NEXT_VERSION }} -w action/package/
+      - name: Create Changelog
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --items unreleased
         env:
-          OUTPUT: action/package/${{ inputs.changelog_file }}
-      # - name: Generate Release Changelog (cropped)
-      #   id: release_changelog
-      #   uses: heinrichreimer/github-changelog-generator-action@v2.3
-      #   with:
-      #     token: ${{ secrets.GH_PAT }}
-      #     futureRelease: ${{ env.NEXT_VERSION }}
-      #     sinceTag: ${{ env.VERSION }}
-      #     stripGeneratorNotice: true
-      # - name: Generate Full Changelog
-      #   id: full_changelog
-      #   uses: heinrichreimer/github-changelog-generator-action@v2.3
-      #   with:
-      #     token: ${{ secrets.GH_PAT }}
-      #     futureRelease: ${{ env.NEXT_VERSION}}
-      #     stripGeneratorNotice: true
-      #     output: action/package/${{ inputs.changelog_file }}
+          GIT_CLIFF_CONFIG: ${{ github.workspace }}/action/github/cliff.toml
+          GIT_CLIFF_WORKDIR: ${{ github.workspace }}/action/package/
+          GIT_CLIFF_PREPEND: ${{ github.workspace }}/action/package/${{ inputs.changelog_file }}
+          GIT_CLIFF_TAG: ${{ env.NEXT_VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_REPO: ${{ github.repository }}
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
           repository: action/package/
+      - name: Create Release Changelog
+        id: release_changelog
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          unset GIT_CLIFF_PREPEND
+          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --items unreleased )
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
       - name: Create Pre-release
         id: create_release
         uses: ncipollo/release-action@v1
