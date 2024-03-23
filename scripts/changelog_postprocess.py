@@ -109,9 +109,6 @@ for entry in changelog_context:
                 f.write(f"{last_commit['id']}\n")
         last_commit = commit
 
-if not open(CLIFF_IGNORE_FILE, 'r').read():
-    exit(0)
-
 
 run_cliff()
 
