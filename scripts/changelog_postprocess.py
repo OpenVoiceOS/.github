@@ -62,7 +62,6 @@ def run_cliff(get_context = False):
         command.append("--output")
         command.append(GIT_CLIFF_OUTPUT)
 
-    print(f"Running cliff with command: {' '.join(command)}")
     process = subprocess.Popen(command, env=environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # interact with the subprocess's standard output and error streams
