@@ -111,7 +111,6 @@ for entry in changelog_context:
         last_commit = commit
 
 if not open(CLIFF_IGNORE_FILE, 'r').read():
-    print("No commits to ignore. No need to postprocess.")
     exit(0)
 
 
