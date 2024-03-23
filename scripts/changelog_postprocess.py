@@ -75,7 +75,6 @@ def run_cliff(get_context = False):
     return stdout.decode().strip()
 
 if not args.context or not isfile(args.context):
-    print(f"No context file passed, creating context with {args.items} items.")
     CONTEXT = run_cliff(get_context=True)
 else:
     with open(args.context, 'r') as f:
