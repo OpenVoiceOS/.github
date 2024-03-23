@@ -117,3 +117,6 @@ if not open(CLIFF_IGNORE_FILE, 'r').read():
 
 
 run_cliff()
+
+# delete the ignore file
+subprocess.run(["rm", CLIFF_IGNORE_FILE])
