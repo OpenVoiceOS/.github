@@ -289,10 +289,8 @@ jobs:
       - name: Create Changelog
         run: |
           cd ${{ github.workspace }}/action/package/
-          export CLIFF_CHANGELOG_CONTEXT=$( git-cliff --unreleased --context)
-          python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py
+          python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --items unreleased
         env:
-          GIT_CLIFF_CHANGELOG_ITEMS: "unreleased"
           GIT_CLIFF_CONFIG: ${{ github.workspace }}/action/github/cliff.toml
           GIT_CLIFF_WORKDIR: ${{ github.workspace }}/action/package/
           GIT_CLIFF_PREPEND: ${{ github.workspace }}/action/package/${{ inputs.changelog_file }}
@@ -353,7 +351,7 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           unset GIT_CLIFF_PREPEND
-          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py)
+          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --items unreleased )
           echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
       - name: (Re)Set and push Release Version
         run: |

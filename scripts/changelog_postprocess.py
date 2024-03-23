@@ -1,21 +1,32 @@
 from os import environ
-from os.path import join, dirname
+from os.path import join, dirname, isfile
 import sys
 import subprocess
 import json
 import re
+import argparse
 
-CONTEXT = environ.get("CLIFF_CHANGELOG_CONTEXT")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--context", "-c", help="Path to the changelog context file")
+parser.add_argument("--items", "-i", choices=["latest", "current", "unreleased", "first unreleased"], default="full")
+args = parser.parse_args()
+
+
 PULL_LINK_PATTERN = r' \(\[#\d+\]\(https:\/\/github\.com\/.+?\/pull\/\d+\)\)'
 CLIFF_IGNORE_FILE = join(environ.get("REPO_BASEDIR", ""), ".cliffignore")
-CHANGELOG_ITEMS = environ.get("GIT_CLIFF_CHANGELOG_ITEMS", "full")
+GIT_CLIFF_OUTPUT = environ.get("GIT_CLIFF_OUTPUT")
+if GIT_CLIFF_OUTPUT:
+    del environ["GIT_CLIFF_OUTPUT"]
 
 
 def escape_control_characters(s):
     return re.sub(r'[\x00-\x1f\x7f-\x9f]', lambda c: "\\u{0:04x}".format(ord(c.group())), s)
 
+
 def strip_pull_request_links(text):
     return re.sub(PULL_LINK_PATTERN, '', text).strip()
+
 
 def in_git_repo(file_path):
     try:
@@ -24,13 +35,53 @@ def in_git_repo(file_path):
     except subprocess.CalledProcessError:
         return False
 
+
 def valid_json(s):
     try:
         json.loads(escape_control_characters(s))
         return True
     except json.JSONDecodeError:
         return False
-    
+
+
+def run_cliff(get_context = False):
+    command = ["git", "cliff"]
+    mute = False
+
+    if args.items == "unreleased":
+        command.append("--unreleased")
+    elif args.items == "latest":
+        command.append("--latest")
+    elif args.items == "current":
+        command.append("--current")
+
+    if get_context:
+        command.append("--context")
+        mute = True
+    elif GIT_CLIFF_OUTPUT:
+        command.append("--output")
+        command.append(GIT_CLIFF_OUTPUT)
+
+    print(f"Running cliff with command: {' '.join(command)}")
+    process = subprocess.Popen(command, env=environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # interact with the subprocess's standard output and error streams
+    stdout, stderr = process.communicate()
+
+    # print the subprocess's standard output and error streams
+    if not mute:
+        print(stdout.decode())
+        print(stderr.decode(), file=sys.stderr)
+
+    return stdout.decode().strip()
+
+if not args.context or not isfile(args.context):
+    print(f"No context file passed, creating context with {args.items} items.")
+    CONTEXT = run_cliff(get_context=True)
+else:
+    with open(args.context, 'r') as f:
+        CONTEXT = f.read()
+
 if not valid_json(CONTEXT):
     raise Exception("You need to provide a valid changelog context (json)")
 if not in_git_repo(CLIFF_IGNORE_FILE):
@@ -39,9 +90,6 @@ else:
     # empty the file
     with open(CLIFF_IGNORE_FILE, 'w') as f:
         f.write("")
-if not CHANGELOG_ITEMS in ["full", "latest", "current", "unreleased"]:
-    raise ValueError("GIT_CLIFF_CHANGELOG_ITEMS must be one of 'latest', 'current', 'unreleased'")
-
 
 escaped_json_string = escape_control_characters(CONTEXT)
 changelog_context = json.loads(escaped_json_string)
@@ -67,21 +115,5 @@ if not open(CLIFF_IGNORE_FILE, 'r').read():
     print("No commits to ignore. No need to postprocess.")
     exit(0)
 
-command = ["git", "cliff"]
 
-if CHANGELOG_ITEMS == "unreleased":
-    command.append("--unreleased")
-elif CHANGELOG_ITEMS == "latest":
-    command.append("--latest")
-elif CHANGELOG_ITEMS == "current":
-    command.append("--current")
-
-
-process = subprocess.Popen(command, env=environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-# interact with the subprocess's standard output and error streams
-stdout, stderr = process.communicate()
-
-# print the subprocess's standard output and error streams
-print(stdout.decode())
-print(stderr.decode(), file=sys.stderr)
+run_cliff()
