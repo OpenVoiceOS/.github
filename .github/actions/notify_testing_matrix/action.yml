@@ -4,9 +4,6 @@ inputs:
   matrix_token:
     description: 'The token to use to authenticate with the Matrix server'
     required: true
-  # kickoff_pr:
-  #   description: 'Kick off pull request'
-  #   default: 'false'
   subject:
     description: 'Subject of the message'
     default: 'no subject'

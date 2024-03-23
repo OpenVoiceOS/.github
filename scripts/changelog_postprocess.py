@@ -18,6 +18,9 @@ CLIFF_IGNORE_FILE = join(environ.get("REPO_BASEDIR", ""), ".cliffignore")
 GIT_CLIFF_OUTPUT = environ.get("GIT_CLIFF_OUTPUT")
 if GIT_CLIFF_OUTPUT:
     del environ["GIT_CLIFF_OUTPUT"]
+GIT_CLIFF_PREPEND = environ.get("GIT_CLIFF_PREPEND")
+if GIT_CLIFF_PREPEND:
+    del environ["GIT_CLIFF_PREPEND"]
 
 
 def escape_control_characters(s):
@@ -61,6 +64,9 @@ def run_cliff(get_context = False):
     elif GIT_CLIFF_OUTPUT:
         command.append("--output")
         command.append(GIT_CLIFF_OUTPUT)
+    elif GIT_CLIFF_PREPEND:
+        command.append("--prepend")
+        command.append(GIT_CLIFF_PREPEND)
 
     process = subprocess.Popen(command, env=environ, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

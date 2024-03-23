@@ -33,8 +33,10 @@ jobs:
     env:
       VERSION_FILE: ${{ github.workspace }}/action/package/${{ inputs.version_file }}
       SOURCE_BRANCH: ${{ inputs.release_type == 'alpha' && 'dev' || 'testing' }}
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      GH_PAT: ${{ secrets.GH_PAT }}
+      GIT_CLIFF_CONFIG: ${{ github.workspace }}/action/github/cliff.toml
+      GIT_CLIFF_WORKDIR: ${{ github.workspace }}/action/package/
+      GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      GITHUB_REPO: ${{ github.repository }}
     steps:
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
@@ -80,12 +82,8 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --items unreleased
         env:
-          GIT_CLIFF_CONFIG: ${{ github.workspace }}/action/github/cliff.toml
-          GIT_CLIFF_WORKDIR: ${{ github.workspace }}/action/package/
           GIT_CLIFF_PREPEND: ${{ github.workspace }}/action/package/${{ inputs.changelog_file }}
           GIT_CLIFF_TAG: ${{ env.NEXT_VERSION }}
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          GITHUB_REPO: ${{ github.repository }}
       - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
@@ -95,9 +93,10 @@ jobs:
         id: release_changelog
         run: |
           cd ${{ github.workspace }}/action/package/
-          unset GIT_CLIFF_PREPEND
           CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --items unreleased )
           echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+        env:
+          GIT_CLIFF_TAG: ${{ env.NEXT_VERSION }}
       - name: Create Pre-release
         id: create_release
         uses: ncipollo/release-action@v1
