@@ -311,7 +311,9 @@ jobs:
         id: get_commit_sha
         run: |
           cd ${{ github.workspace }}/action/package/
-          git fetch --unshallow
+          if [ -f .git/shallow ]; then
+            git fetch --unshallow
+          fi
           git checkout dev
           COMMITS=2
           if [ "${{ needs.autotranslate.outputs.translated }}" == "1" ]; then
