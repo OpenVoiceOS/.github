@@ -283,9 +283,11 @@ jobs:
           git checkout testing
           TEST_VERSION=$(python setup.py --version)
           echo "TEST_VERSION=${TEST_VERSION}" >> $GITHUB_ENV
-          VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
-          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$VERSION" --next --type alpha)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          PREVIOUS_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
+          NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$PREVIOUS_VERSION" --next --type alpha)
+          RELEASE_CYCLE_START=$( python ${{ github.workspace }}/action/github/scripts/semver_release_version.py cycle --version "$TEST_VERSION" --latest --type patch)
+          echo "RELEASE_CYCLE_START=${RELEASE_CYCLE_START}" >> $GITHUB_ENV
+          echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
           git checkout dev
       - name: Create Changelog
@@ -295,7 +297,7 @@ jobs:
         env:
           GIT_CLIFF_PREPEND: ${{ github.workspace }}/action/package/${{ inputs.changelog_file }}
           GIT_CLIFF_TAG: ${{ env.NEXT_VERSION }}
-      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
+      - name: Commit Prerelease Changes (${{ env.PREVIOUS_VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}
@@ -327,7 +329,7 @@ jobs:
           cd ${{ github.workspace }}/action/package/
           git config user.name "EggmanBot"
           git config user.email "openvoiceos@gmail.com"
-          git checkout -b temp-branch "tags/$VERSION"
+          git checkout -b temp-branch "tags/$PREVIOUS_VERSION"
           IFS=' ' read -ra ADDR <<< "${{ env.COMMIT_SHA }}"
           for i in "${ADDR[@]}"; do
             PARENTS_COUNT=$(git cat-file -p $i | grep -c parent)

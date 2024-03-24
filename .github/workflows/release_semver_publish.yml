@@ -29,8 +29,11 @@ on:
 jobs:
   build_and_publish:
     env:
-      GITHUB_REPOSITORY: ${{ github.repository }}
-      GH_PAT: ${{ secrets.GH_PAT }}
+      PCCC_CONFIG_FILE: ${{ github.workspace }}/action/github/pccc.toml
+      GIT_CLIFF_CONFIG: ${{ github.workspace }}/action/github/cliff.toml
+      GIT_CLIFF_WORKDIR: ${{ github.workspace }}/action/package/
+      GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      GITHUB_REPO: ${{ github.repository }}
     runs-on: ubuntu-latest
     steps:
       - name: set up release type
@@ -57,31 +60,34 @@ jobs:
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_build_tools.txt
-      - name: Get Version
+      - name: Get Release Version
         run: |
-          VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-      - name: Check Latest Release
+          RELEASE_VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> $GITHUB_ENV
+      - name: Parse Release Type
         run: |
-          SINCE_TAG=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest)
-          echo "SINCE_TAG=${SINCE_TAG}" >> $GITHUB_ENV
-      - name: create release changelog (cropped)
-        id: changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          sinceTag: ${{ env.SINCE_TAG }}
-          stripGeneratorNotice: true
+          RELEASE_TYPE=$(python ${{ github.workspace }}/action/github/scripts/parse_semver_release.py)
+          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
+          RELEASE_CYCLE_START=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type "$RELEASE_TYPE" )
+          echo "RELEASE_CYCLE_START=${RELEASE_CYCLE_START}" >> $GITHUB_ENV
+      - name: Create Release Changelog
+        id: release_changelog
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --since ${{ env.RELEASE_CYCLE_START }} )
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+        env:
+          GIT_CLIFF_TAG: ${{ env.RELEASE_VERSION }}
       - name: Create Release
         id: create_release
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GH_PAT }}
-          tag: ${{ env.VERSION }}
-          name: Release ${{ env.VERSION }}
+          tag: ${{ env.RELEASE_VERSION }}
+          name: Release ${{ env.RELEASE_VERSION }}
           body: |
             Changes in this Release
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.release_changelog.outputs.changelog }}
       - name: Build Distribution Packages
         run: |
           mkdir -p ${{ github.workspace }}/action/dist

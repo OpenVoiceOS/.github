@@ -9,10 +9,16 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--context", "-c", help="Path to the changelog context file")
-parser.add_argument("--items", "-i", choices=["latest", "current", "unreleased", "first unreleased"], default="full")
+
+release_group = parser.add_mutually_exclusive_group()
+release_group.add_argument("--items", "-i", choices=["unreleased", "latest", "current"], help="Items to include in the changelog", default="full")
+release_group.add_argument("--since", "-s", help="Include items since a specific version")
+
 args = parser.parse_args()
 
-
+if args.since == "0.0.0":
+    args.since = None
+    
 PULL_LINK_PATTERN = r' \(\[#\d+\]\(https:\/\/github\.com\/.+?\/pull\/\d+\)\)'
 CLIFF_IGNORE_FILE = join(environ.get("REPO_BASEDIR", ""), ".cliffignore")
 GIT_CLIFF_OUTPUT = environ.get("GIT_CLIFF_OUTPUT")
@@ -39,6 +45,14 @@ def in_git_repo(file_path):
         return False
 
 
+def is_tag(tag):
+    try:
+        subprocess.check_output(['git', 'rev-parse', tag])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
 def valid_json(s):
     try:
         json.loads(escape_control_characters(s))
@@ -57,6 +71,9 @@ def run_cliff(get_context = False):
         command.append("--latest")
     elif args.items == "current":
         command.append("--current")
+    elif args.since:
+        last_commit = subprocess.check_output(["git", "log", "-1", "--pretty=format:'%h'"]).decode().strip()
+        command.append(f"{args.since}..{last_commit}")
 
     if get_context:
         command.append("--context")
@@ -90,6 +107,8 @@ if not valid_json(CONTEXT):
     raise Exception("You need to provide a valid changelog context (json)")
 if not in_git_repo(CLIFF_IGNORE_FILE):
     raise Exception("You have to run this script in a git repository or provide a proper `REPO_BASEDIR` environment variable.")
+elif args.since and not is_tag(args.since):
+    raise Exception(f"The tag provided {args.since} doesn't exist.")
 else:
     # empty the file
     with open(CLIFF_IGNORE_FILE, 'w') as f:

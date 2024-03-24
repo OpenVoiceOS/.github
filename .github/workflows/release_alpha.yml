@@ -67,13 +67,15 @@ jobs:
         id: version
         run: |
           cd ${{ github.workspace }}/action/github/scripts/
-          VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }} --latest)
+          PREVIOUS_VERSION=$(python semver_release_version.py --file ${{ env.VERSION_FILE }} --latest)
           if [ "${{ inputs.release_type }}" != 'alpha' ]; then
             NEXT_VERSION=$( python semver_release_version.py --next --type ${{ inputs.release_type }} --file ${{ env.VERSION_FILE }} --bump-prerelease --save)
           else
             NEXT_VERSION=$(python semver_release_version.py --next --type alpha --file ${{ env.VERSION_FILE }} --save)
           fi
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          RELEASE_CYCLE_START=$( python semver_release_version.py cycle --version "$VERSION" --latest --type patch)
+          echo "RELEASE_CYCLE_START=${RELEASE_CYCLE_START}" >> $GITHUB_ENV
+          echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
       - name: change working directory
         run: cd ${{ github.workspace }}/action/package/
@@ -84,7 +86,7 @@ jobs:
         env:
           GIT_CLIFF_PREPEND: ${{ github.workspace }}/action/package/${{ inputs.changelog_file }}
           GIT_CLIFF_TAG: ${{ env.NEXT_VERSION }}
-      - name: Commit Prerelease Changes (${{ env.VERSION }} -> ${{ env.NEXT_VERSION }})
+      - name: Commit Prerelease Changes (${{ env.PREVIOUS_VERSION }} -> ${{ env.NEXT_VERSION }})
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Prerelease Changes ${{ env.NEXT_VERSION }}

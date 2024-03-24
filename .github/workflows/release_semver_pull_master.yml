@@ -20,9 +20,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TARGET_BRANCH: 'master'
-      GITHUB_REPOSITORY: ${{ github.repository }}
       PCCC_CONFIG_FILE: ${{ github.workspace }}/action/github/pccc.toml
-      GH_PAT: ${{ secrets.GH_PAT }}
+      GIT_CLIFF_CONFIG: ${{ github.workspace }}/action/github/cliff.toml
+      GIT_CLIFF_WORKDIR: ${{ github.workspace }}/action/package/
+      GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      GITHUB_REPO: ${{ github.repository }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -51,26 +53,26 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install -r ${{ github.workspace }}/action/github/requirements/pip_base.txt
-      - name: Get Version
+      - name: Get Release Version
         run: |
-          export VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          RELEASE_VERSION=$(python ${{ github.workspace }}/action/package/setup.py --version)
+          echo "RELEASE_VERSION=${RELEASE_VERSION}" >> $GITHUB_ENV
       - name: Parse Release Type
         run: |
           RELEASE_TYPE=$(python ${{ github.workspace }}/action/github/scripts/parse_semver_release.py)
           echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
       - name: Check Latest Release
         run: |
-          LATEST_RELEASE=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type ${{ env.RELEASE_TYPE }})
+          LATEST_RELEASE=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --latest --type ${{ env.RELEASE_TYPE }}) 
           echo "LATEST_RELEASE=${LATEST_RELEASE}" >> $GITHUB_ENV
-      - name: create release changelog (cropped)
-        id: changelog
-        uses: heinrichreimer/github-changelog-generator-action@v2.3
-        with:
-          token: ${{ secrets.GH_PAT }}
-          sinceTag: ${{ env.LATEST_RELEASE }}
-          stripGeneratorNotice: true
-      # if there is no master branch, create one from the tag of the latest release or first commit
+      - name: Create Release Changelog (Proposal)
+        id: release_changelog
+        run: |
+          cd ${{ github.workspace }}/action/package/
+          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --since ${{ env.LATEST_RELEASE }} )
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+        env:
+          GIT_CLIFF_TAG: ${{ env.RELEASE_VERSION }}
       - name: Create Master Branch (if necessary)
         run: |
             cd ${{ github.workspace }}/action/package/
@@ -88,10 +90,10 @@ jobs:
         run: |
           cd ${{ github.workspace }}/action/package/
           gh pr create \
-          --title "ci(release): declare ${{ env.RELEASE_TYPE }} release stable (${{ env.VERSION }})" \
+          --title "ci(release): declare ${{ env.RELEASE_TYPE }} release stable (${{ env.RELEASE_VERSION }})" \
           --body "$(cat << EOF
             Included changes:
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.release_changelog.outputs.changelog }}
           EOF
           )" \
           --base ${{ env.TARGET_BRANCH }} \

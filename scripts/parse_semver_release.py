@@ -22,7 +22,7 @@ BODY = environ.get("BODY")
 
 def get_version():
     # note: this is a PEP 440 compliant version, so alpha versions come in "1.0.0a1"
-    version = environ.get("VERSION", "")
+    version = environ.get("VERSION") or environ.get("PREVIOUS_VERSION")
     match = re.match(r"(\d+\.\d+\.\d+)([aA-zZ].*)", version)
     if match:
         return f"{match.group(1)}-{match.group(2)}"

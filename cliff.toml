@@ -16,7 +16,8 @@ All notable changes to this project will be documented in this file.\n
 body = """
 {% if version %}\
     ## [{{ version | trim_start_matches(pat="v") }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/tree/{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
-    ### [Full Changelog](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/compare/{{ previous.version }}...{{ version }})
+    ### [Latest Changes](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/compare/{{ previous.version }}...{{ version }})
+    ### [Release Cycle Changelog](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/compare/<START_CYCLE>...{{ version }})
 {% else %}\
     ## [unreleased]
 {% endif %}\
@@ -38,6 +39,7 @@ trim = true
 # postprocessors
 postprocessors = [
   { pattern = '<REPO>', replace_command = 'sed "s#<REPO>#$GITHUB_REPO#"' },
+  { pattern = '<START_CYCLE>', replace_command = 'if [ -z "$RELEASE_CYCLE_START" ]; then sed "/<START_CYCLE>/d"; else sed "s#<START_CYCLE>#$RELEASE_CYCLE_START#"; fi' },
 ]
 
 [git]
