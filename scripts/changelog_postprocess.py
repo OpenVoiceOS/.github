@@ -101,7 +101,7 @@ def run_cliff(get_context = False):
         
         if GITHUB_ACTION_OUTPUT:
             with open(GITHUB_ACTION_OUTPUT, 'a') as f:
-                f.write(f"changelog={output}\n")
+                f.write(f'changelog="{output}"')
         else:
             print(output)
 
