@@ -1,10 +1,11 @@
-from os import environ, getcwd
+from os import environ, getcwd, urandom
 from os.path import join, isfile
 import sys
 import subprocess
 import json
 import re
 import argparse
+import base64
 
 
 parser = argparse.ArgumentParser()
@@ -100,8 +101,11 @@ def run_cliff(get_context = False):
             output = stdout.decode()
         
         if GITHUB_ACTION_OUTPUT:
+            delimiter = base64.b64encode(urandom(15)).decode('utf-8')
             with open(GITHUB_ACTION_OUTPUT, 'a') as f:
-                f.write(f'changelog="{output}"')
+                f.write(f'changelog<<{delimiter}\n')
+                f.write(f'{output}\n')
+                f.write(f'{delimiter}\n')
         else:
             print(output)
 
