@@ -231,10 +231,10 @@ jobs:
           cd ${{ github.workspace }}
           echo "testing" > test-status
       - name: Cache test status
-        uses: actions/cache/save@v4
+        uses: actions/cache@v2
         with:
           path: test-status
-          key: test-status-${{ runner.os }}
+          key: test-status-${{ runner.os }}-${{ github.run_number }}
       - name: Notify Matrix Room
         uses: ./action/github/.github/actions/notify_testing_matrix
         with:
@@ -242,6 +242,7 @@ jobs:
           subject: ${{ inputs.subject }}
           release_type: ${{ env.RELEASE_TYPE }}
           version: ${{ env.NEXT_VERSION }}
+          repository: ${{ github.repository }}
   # testing release
   # note: autotranslate as dependency requires the job running without restrictions!
   cherry_pick_testing:

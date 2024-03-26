@@ -1,12 +1,9 @@
-name: Notify Matrix Chat
+name: Notify Matrix Chat (Test State)
 
 # only triggers on pull request closed events
 on:
   workflow_call:
     inputs:
-      # kickoff_pr:
-      #   type: boolean
-      #   default: true
       subject:
         type: string
         default: 'no subject'

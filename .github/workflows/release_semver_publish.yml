@@ -103,12 +103,10 @@ jobs:
         run: |
           echo "complete" > test-status
       - name: Cache test status
-        uses: actions/cache@v4
+        uses: actions/cache@v2
         with:
           path: test-status
-          key: test-status-${{ runner.os }}
-          restore-keys: |
-            test-status-
+          key: test-status-${{ runner.os }}-${{ github.run_number }}
       # NO REBASE APPROACH!!
       # - name: Rebase dev onto master
       #   run: |
