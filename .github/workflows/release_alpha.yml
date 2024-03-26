@@ -95,8 +95,7 @@ jobs:
         id: release_changelog
         run: |
           cd ${{ github.workspace }}/action/package/
-          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --since ${{ env.PREVIOUS_VERSION }} )
-          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+          python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --since ${{ env.PREVIOUS_VERSION }}
         env:
           GIT_CLIFF_TAG: ${{ env.NEXT_VERSION }}
       - name: Create Pre-release
