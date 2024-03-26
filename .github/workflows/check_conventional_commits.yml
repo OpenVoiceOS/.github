@@ -37,6 +37,7 @@ jobs:
       PR_NUMBER: ${{ inputs.pr_number }}
       ERROR_ON_FAILURE: ${{ inputs.error_on_failure }}
       TEST_PHASE_CACHE: ${{ github.workspace }}/test-status
+      PCCC_CONFIG_FILE: ${{ github.workspace }}/pccc.toml
     steps:
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
