@@ -1,5 +1,5 @@
-from os import environ
-from os.path import join, dirname, isfile
+from os import environ, getcwd
+from os.path import join, isfile
 import sys
 import subprocess
 import json
@@ -20,7 +20,8 @@ if args.since == "0.0.0":
     args.since = None
     
 PULL_LINK_PATTERN = r' \(\[#\d+\]\(https:\/\/github\.com\/.+?\/pull\/\d+\)\)'
-CLIFF_IGNORE_FILE = join(environ.get("REPO_BASEDIR", ""), ".cliffignore")
+CLIFF_WORKDIR = environ.get("GIT_CLIFF_WORKDIR", getcwd())
+CLIFF_IGNORE_FILE = join(CLIFF_WORKDIR, ".cliffignore")
 GIT_CLIFF_OUTPUT = environ.get("GIT_CLIFF_OUTPUT")
 if GIT_CLIFF_OUTPUT:
     del environ["GIT_CLIFF_OUTPUT"]
@@ -37,9 +38,9 @@ def strip_pull_request_links(text):
     return re.sub(PULL_LINK_PATTERN, '', text).strip()
 
 
-def in_git_repo(file_path):
+def in_git_repo():
     try:
-        subprocess.check_output(['git', '-C', dirname(file_path), 'rev-parse'])
+        subprocess.check_output(['git', '-C', CLIFF_WORKDIR, 'rev-parse'])
         return True
     except subprocess.CalledProcessError:
         return False
@@ -47,7 +48,7 @@ def in_git_repo(file_path):
 
 def is_tag(tag):
     try:
-        subprocess.check_output(['git', 'rev-parse', tag])
+        subprocess.check_output(['git', '-C', CLIFF_WORKDIR, 'rev-parse', tag])
         return True
     except subprocess.CalledProcessError:
         return False
@@ -72,7 +73,7 @@ def run_cliff(get_context = False):
     elif args.items == "current":
         command.append("--current")
     elif args.since:
-        last_commit = subprocess.check_output(["git", "log", "-1", "--pretty=format:'%h'"]).decode().strip()
+        last_commit = subprocess.check_output(["git", "-C", CLIFF_WORKDIR, "log", "-1", "--pretty=format:%h"]).decode().strip()
         command.append(f"{args.since}..{last_commit}")
 
     if get_context:
@@ -105,8 +106,8 @@ else:
 
 if not valid_json(CONTEXT):
     raise Exception("You need to provide a valid changelog context (json)")
-if not in_git_repo(CLIFF_IGNORE_FILE):
-    raise Exception("You have to run this script in a git repository or provide a proper `REPO_BASEDIR` environment variable.")
+if not in_git_repo():
+    raise Exception("You have to run this script in a git repository or provide a proper `GIT_CLIFF_WORKDIR` environment variable.")
 elif args.since and not is_tag(args.since):
     raise Exception(f"The tag provided {args.since} doesn't exist.")
 else:
@@ -138,4 +139,4 @@ for entry in changelog_context:
 run_cliff()
 
 # delete the ignore file
-subprocess.run(["rm", CLIFF_IGNORE_FILE])
+subprocess.run(["rm", "-f", CLIFF_IGNORE_FILE])
