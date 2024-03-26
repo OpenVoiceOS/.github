@@ -285,7 +285,7 @@ jobs:
           echo "TEST_VERSION=${TEST_VERSION}" >> $GITHUB_ENV
           PREVIOUS_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest)
           NEXT_VERSION=$(python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$PREVIOUS_VERSION" --next --type alpha)
-          RELEASE_CYCLE_START=$( python ${{ github.workspace }}/action/github/scripts/semver_release_version.py cycle --version "$TEST_VERSION" --latest --type patch)
+          RELEASE_CYCLE_START=$( python ${{ github.workspace }}/action/github/scripts/semver_release_version.py --version "$TEST_VERSION" --latest --type patch)
           echo "RELEASE_CYCLE_START=${RELEASE_CYCLE_START}" >> $GITHUB_ENV
           echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}" >> $GITHUB_ENV
           echo "NEXT_VERSION=${NEXT_VERSION}" >> $GITHUB_ENV
