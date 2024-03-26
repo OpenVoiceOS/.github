@@ -91,9 +91,11 @@ def run_cliff(get_context = False):
     # interact with the subprocess's standard output and error streams
     stdout, stderr = process.communicate()
 
-    # print the subprocess's standard output and error streams
     if not mute:
-        print(stdout.decode().replace('\n', '%0A'))
+        if stderr.strip():
+            print(stderr.decode().replace('\n', '%0A'))
+        else:
+            print(stdout.decode().replace('\n', '%0A'))
 
     return stdout.decode().strip()
 
