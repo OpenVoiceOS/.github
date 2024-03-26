@@ -29,6 +29,8 @@ GIT_CLIFF_PREPEND = environ.get("GIT_CLIFF_PREPEND")
 if GIT_CLIFF_PREPEND:
     del environ["GIT_CLIFF_PREPEND"]
 
+GITHUB_ACTION_OUTPUT = environ.get("GITHUB_OUTPUT")
+
 
 def escape_control_characters(s):
     return re.sub(r'[\x00-\x1f\x7f-\x9f]', lambda c: "\\u{0:04x}".format(ord(c.group())), s)
@@ -93,9 +95,15 @@ def run_cliff(get_context = False):
 
     if not mute:
         if stderr.strip():
-            print(stderr.decode().replace('\n', '%0A'))
+            output = stderr.decode()
         else:
-            print(stdout.decode().replace('\n', '%0A'))
+            output = stdout.decode()
+        
+        if GITHUB_ACTION_OUTPUT:
+            with open(GITHUB_ACTION_OUTPUT, 'a') as f:
+                f.write(f"changelog={output}\n")
+        else:
+            print(output)
 
     return stdout.decode().strip()
 
