@@ -60,13 +60,11 @@ def is_tag(tag):
 
 
 def valid_json(s):
-    #try:
-    print(s)
-    json.loads(escape_control_characters(s))
-    return True
-    #     return True
-    # except json.JSONDecodeError:
-    #     return False
+    try:
+        json.loads(escape_control_characters(s))
+        return True
+    except json.JSONDecodeError:
+        return False
 
 
 def run_cliff(get_context = False):
@@ -98,6 +96,8 @@ def run_cliff(get_context = False):
     # interact with the subprocess's standard output and error streams
     stdout, stderr = process.communicate()
 
+    print(command)
+    print(stdout)
     if not mute:
         if stderr.strip():
             output = stderr.decode()
