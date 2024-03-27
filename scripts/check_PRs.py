@@ -98,7 +98,7 @@ for pr in open_pulls:
 
     # clear the test flag if the PR adresses a release. Ie. gets added to the test
     if SINGLE_PR:
-        if cc_type(pr_description) == "release" or \
+        if cc_type(pr_description) in ["release", "ci", "style", "test", "docs"] or \
                 cc_scope(pr_description) == "release":
             ongoing_test = False
         if cc_type(pr_description) == "unknown":
