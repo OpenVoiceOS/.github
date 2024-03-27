@@ -69,8 +69,7 @@ jobs:
         id: release_changelog
         run: |
           cd ${{ github.workspace }}/action/package/
-          CHANGELOG=$( python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --since ${{ env.LATEST_RELEASE }} )
-          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+          python ${{ github.workspace }}/action/github/scripts/changelog_postprocess.py --since ${{ env.LATEST_RELEASE }}
         env:
           GIT_CLIFF_TAG: ${{ env.RELEASE_VERSION }}
       - name: Create Master Branch (if necessary)
