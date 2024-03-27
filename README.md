@@ -59,9 +59,13 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
 ---------
   - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.  
   - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.  
-  - General rule: PRs/commits are dev only, other branches will be protected.
-  - _Testing QA_: PRs/commits that directly address issues with that release need a prefix/scope `fix(testing):`. _Those_ will be part of the patch/minor/major release. The version of the `testing` branch is to be held steady. A fix for later releases has to be commited as usual with `fix: ...`.  
-  - Release-tags: The tag resembles the semantic versioning (eg. `1.2.3`; no prefix!, alphas will be formatted appropriately)
+  - General rule: PRs/commits are _dev only_, other branches will be protected.
+  - PRs/commits that directly address issues with a **release** need a prefix/scope `fix(release):`/`release(<scope>):`. _Those_ will be part of the patch/minor/major release.
+  - The version of the `testing` branch is to be held steady.
+  - A fix for later releases has to be commited as usual with `fix: ...`. Those PRs get a warning label "test ongoing"  
+  - The PR title of release PRs that conclude the testing phase (_Proposals_) mustn't be edited
+  - If those proposals need additional changes, the PR is to be closed until the changes are commited (to dev).
+  - Release-tags: The tag resembles the semantic versioning (eg. `1.2.3`; no prefix!, alphas will be formatted appropriately)  
 
   TODO (per repo):
   - `setup.py`: setuptools cant cope with semver compliance: `x.x.x-alpha...` stays `x.x.xax` for now
