@@ -63,7 +63,7 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
   - PRs/commits that directly address issues with a **release** need a prefix/scope `fix(release):`/`release(<scope>):`. _Those_ will be part of the patch/minor/major release.
   - remember: `ci`/`style`/`test`/`docs` commits don't get a release.
   - The version of the `testing` branch is to be held steady.
-  - A fix for later releases has to be commited as usual with `fix: ...`. Those PRs get a warning label "test ongoing".
+  - A fix for later releases has to be commited as usual with `fix: ...`. Those PRs get a warning label "test ongoing". Usually it`s best ti include them into the ongoing release/test.
   - All pending PRs get a daily check (00:00 UTC) and labeling is adjusted accordingly.
   - The PR title of release PRs that conclude the testing phase (_Proposals_) mustn't be edited
   - If those proposals need additional changes, the PR is to be closed until the changes are commited (to dev).
