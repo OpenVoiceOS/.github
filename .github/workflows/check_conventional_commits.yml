@@ -52,9 +52,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: test-status
-          key: test-status-${{ runner.os }}-${{ github.run_number }}
-          restore-keys: |
-            test-status-${{ runner.os }}-
+          key: test-status-${{ runner.os }}
       - name: Status Check
         run: |
           python scripts/check_PRs.py
