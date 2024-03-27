@@ -36,10 +36,6 @@ jobs:
       GITHUB_REPO: ${{ github.repository }}
     runs-on: ubuntu-latest
     steps:
-      - name: set up release type
-        run: |
-          RELEASE_TYPE=$(echo "${{ inputs.subject }}" | grep -oP '(patch|minor|major)')
-          echo "RELEASE_TYPE=${RELEASE_TYPE}" >> $GITHUB_ENV
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -106,10 +102,3 @@ jobs:
         with:
           path: test-status
           key: test-status-${{ runner.os }}-${{ github.run_number }}
-      # NO REBASE APPROACH!!
-      # - name: Rebase dev onto master
-      #   run: |
-      #     cd ${{ github.workspace }}/action/package
-      #     git checkout dev
-      #     git rebase master
-      #     git push origin dev --force
