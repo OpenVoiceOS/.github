@@ -60,11 +60,12 @@ def is_tag(tag):
 
 
 def valid_json(s):
-    try:
-        json.loads(escape_control_characters(s))
-        return True
-    except json.JSONDecodeError:
-        return False
+    #try:
+    json.loads(escape_control_characters(s))
+    return True
+    #     return True
+    # except json.JSONDecodeError:
+    #     return False
 
 
 def run_cliff(get_context = False):
