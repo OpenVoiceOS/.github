@@ -31,6 +31,8 @@ if GIT_CLIFF_PREPEND:
     del environ["GIT_CLIFF_PREPEND"]
 
 GITHUB_ACTION_OUTPUT = environ.get("GITHUB_OUTPUT")
+if GIT_CLIFF_OUTPUT or GIT_CLIFF_PREPEND:
+    GITHUB_ACTION_OUTPUT = None
 
 
 def escape_control_characters(s):
@@ -83,11 +85,9 @@ def run_cliff(get_context = False):
         command.append("--context")
         mute = True
     elif GIT_CLIFF_OUTPUT:
-        GITHUB_ACTION_OUTPUT = None
         command.append("--output")
         command.append(GIT_CLIFF_OUTPUT)
     elif GIT_CLIFF_PREPEND:
-        GITHUB_ACTION_OUTPUT = None
         command.append("--prepend")
         command.append(GIT_CLIFF_PREPEND)
 
