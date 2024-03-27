@@ -100,8 +100,6 @@ jobs:
       - name: Delete Test Tracking Cache
         run: |
           gh extension install actions/gh-actions-cache
-          unset GITHUB_TOKEN
-          echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
 
           echo "Fetching list of cache key"
           cacheKeys=$(gh actions-cache list -R ${{ github.repository }} -L 100 | cut -f 1 )
@@ -114,6 +112,8 @@ jobs:
               gh actions-cache delete $cacheKey -R ${{ github.repository }} --confirm
           done
           echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
       - name: Cache test status
         uses: actions/cache@v2
         with:
