@@ -61,6 +61,7 @@ def is_tag(tag):
 
 def valid_json(s):
     #try:
+    print(s)
     json.loads(escape_control_characters(s))
     return True
     #     return True
