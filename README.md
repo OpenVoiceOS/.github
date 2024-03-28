@@ -81,12 +81,11 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
 _Alpha releases are directly published without going through a test phase_
 
 Strategy: 3-staged  
-  - Manually propose a testing start or automatically with setting "Conventional Commits" (optionally as PR)
-    - Kickoff PR: If the testing phase of the release should start right away or being time-delayed (starting when PR is merged). Input `kickoff_pr` (true/false)
-  - Manually conclude testing phase, propose a stable release (PR)
-  - Publishing of a stable release (on merge) and feed back the changes to the dev branch
+  - _Manually_ propose a testing start or _automatically_ with setting "Conventional Commits"
+  - _Manually_ conclude testing phase, propose a stable release (PR)
+  - _Automatically_ publishing a stable release (on merge)
 
-_(manual/auto)_ **Start release mechanism**  
+**Start release mechanism**  
 
 ```yaml
 name: Start release mechanism
@@ -127,32 +126,8 @@ jobs:
       update_intentfile: test/unittests/test_intent.yaml           # the intent file resources gets tested against
       release_type: ${{ inputs.release_type || null }}             # if manually triggered, set a release type
       subject: ${{  github.event.head_commit.message || null }}    # on push, the commit message is used as release subject
-      kickoff_pr: true                                             # if the release process should be started with a PR to summarize and visualize, default: false
 ```
-_(auto/optional)_ **Start testing phase**  
-
-_If a kickoff PR is opened, for versioning and synchronization purposes_  
-_(if no PR is used, the testing phase starts right away)_  
-```yaml
-name: Start Testing Phase
-# only trigger on pull request closed events
-on:
-  pull_request:
-    types: [ closed ]
-    branches:
-      - testing
-
-jobs:
-  start_testing_phase:
-    if: github.actor != 'EggmanBot' && github.event.pull_request.merged == true && contains(fromJson('["patch release", "minor release", "major release"]'), github.event.pull_request.title)
-    uses: openvoiceos/.github/.github/workflows/release_semver_versioning.yml@feat/shared_actions1
-    secrets: inherit
-    with:
-      action_branch: feat/shared_actions1         # Shared action branch to use, default: main
-      version_file: ovos_testpkg/version.py       # the file containing the version number
-      subject: ${{ github.event.pull_request.title }}
-```
-_(manual)_ **Conclude testing phase**  
+**Conclude testing phase**  
 
 _After the testing phase, a PR is opened to propose the stable release_  
 ```yaml
@@ -168,7 +143,7 @@ jobs:
       action_branch: shared_actions1              # Shared action branch to use, default: main
       python_version: "3.10"                      # the python version to use
 ```
-_(auto)_ **Publishing stable release**  
+**Publishing stable release**  
 
 ```yaml
 name: Publish Stable Release
@@ -181,7 +156,12 @@ on:
 
 jobs:
   publish_stable_release:
-    if: github.actor != 'EggmanBot' && github.event.pull_request.merged == true && contains(fromJson('["patch release stable", "minor release stable", "major release stable"]'), github.event.pull_request.title)
+    if: >
+      github.event.pull_request.merged == true &&
+      github.actor != 'EggmanBot' &&
+      (contains(github.event.pull_request.title, 'patch release stable') ||
+      contains(github.event.pull_request.title, 'minor release stable') ||
+      contains(github.event.pull_request.title, 'major release stable'))
     uses: openvoiceos/.github/.github/workflows/release_semver_publish.yml@feat/shared_actions1
     secrets: inherit
     with:
