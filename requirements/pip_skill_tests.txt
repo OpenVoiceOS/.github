@@ -1,0 +1,13 @@
+coveralls
+pytest
+pytest-cov
+mock
+wheel
+cython
+ovos-core>=0.0.8a66
+ovos-workshop>=0.0.16a14
+
+ovos-phal-plugin-connectivity-events~=0.0.1
+padatious>=0.4.8, < 0.5.0
+fann2>=1.0.7, < 1.1.0
+padaos>=0.1, < 0.2
