@@ -376,19 +376,18 @@ jobs:
 ```yaml
 name: Notify Matrix Chat
 
-# only trigger on pull request closed events
 on:
   pull_request:
     types: [ closed ]
 
 jobs:
   notify_pr_matrix:
-    # this job will only run if the PR has been merged
     if: github.event.pull_request.merged == true
     secrets: inherit
     uses: openvoiceos/.github/.github/workflows/notify_pr_matrix.yml@main
     with:
       pr_id: ${{ github.event.number }}
+      subject: ${{ github.event.pull_request.title }}
 ```
 -------------
 
