@@ -49,7 +49,10 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
   - `plugins`: Changes to the plugin system,
   - `localisation`: Changes to the localisation files,
   - `resources`: Changes to the resource files,
-  - `release`: Everything related to the release process
+  - `release`: Everything related to the release process  
+  
+  This is an excerpt [list of predefined scopes](https://github.com/OpenVoiceOS/.github/blob/feat/shared_actions1/pccc.toml). This list is not exclusive, but the main system components.
+  If you have to be more specific, feel free to use submodule names or more detailed scopes.
 
 --------------
 ## Premises
