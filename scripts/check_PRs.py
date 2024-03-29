@@ -1,6 +1,7 @@
 import os
 from os.path import join, dirname, isfile
 import json
+import re
 from typing import List, Optional
 
 from github import Github, PullRequest
@@ -33,14 +34,31 @@ else:
         ongoing_test = content == "testing"
 
 
+def get_scope(title):
+    match = re.match(r"^[a-z]+\s*\((.+)\):", title)
+    if match:
+        return match.group(1)
+    return None
+
+
+def strip_scope(title):
+    return re.sub(r"^([a-z]+)\s*\(([^)]+)\):", r"\1:", title)
+
+
 def cc_type(desc: str) -> str:
-    ccr = parse_cc(desc)
+    ccr = parse_cc(strip_scope(desc))
     if ccr:
-        if ccr.breaking.get("flag") or ccr.breaking.get("token"):
-            return "breaking"
         return ccr.header.get("type")
 
     return "unknown"
+
+
+def cc_breaking(desc: str) -> bool:
+    ccr = parse_cc(strip_scope(desc))
+    if ccr:
+        return ccr.breaking.get("flag") or ccr.breaking.get("token")
+
+    return False
 
 
 def cc_scope(desc: str) -> str:
@@ -48,7 +66,7 @@ def cc_scope(desc: str) -> str:
     if ccr:
         return ccr.header.get("scope")
 
-    return "unknown"
+    return get_scope(desc) or "unknown"
 
 
 def parse_cc(desc: str) -> Optional[pccc.ConventionalCommitRunner]:
@@ -69,16 +87,20 @@ def check_cc_labels(desc: str) -> List[str]:
     labels = set()
     _type = cc_type(desc)
     _scope = cc_scope(desc)
-    test_relevant_cc = ["feat", "fix", "refactor", "breaking"]
+    test_relevant_cc = ["feat", "fix", "refactor"]
     if _type == "unknown":
         return [PR_LABELS.get("need_cc", "CC missing")]
-    if _type == "breaking":
+    if cc_breaking(desc):
         labels.add(PR_LABELS.get("breaking", "breaking change"))
+    if _type == "release":
+        labels.add("fix")
+    elif _type in PR_LABELS:
+        labels.add(PR_LABELS.get(_type))
     if _scope in PR_LABELS:
         labels.add(PR_LABELS.get(_scope))
-    if _type in PR_LABELS:
-        labels.add(PR_LABELS.get(_type))
-    if ongoing_test and any(t in test_relevant_cc for t in [_type, _scope]):
+    elif _scope != "unknown":
+        labels.add(_scope)
+    if ongoing_test and (any(t in test_relevant_cc for t in [_type, _scope]) or cc_breaking(desc)):
         labels.add("ongoing test")
         
     return list(labels)
@@ -96,7 +118,7 @@ for pr in open_pulls:
     labels = check_cc_labels(pr_description)
     pr.set_labels(*labels)
 
-    # clear the test flag if the PR adresses a release. Ie. gets added to the test
+    # clear the test flag if the PR adresses a release or doesn't get a release at all.
     if SINGLE_PR:
         if cc_type(pr_description) in ["release", "ci", "style", "test", "docs"] or \
                 cc_scope(pr_description) == "release":

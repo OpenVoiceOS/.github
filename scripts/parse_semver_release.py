@@ -16,8 +16,18 @@ if CONFIG_FILE and not isfile(CONFIG_FILE):
     print(f"Config file {CONFIG_FILE} not found.")
     exit(1)
 
-TITLE = environ.get("TITLE")
-BODY = environ.get("BODY")
+
+def get_scope(title):
+    match = re.match(r"^[a-z]+\s*\((.+)\):", title)
+    if match:
+        return match.group(1)
+    return None
+
+
+def strip_scope(title):
+    if get_scope(title) != "release":
+        return re.sub(r"^([a-z]+)\s*\(([^)]+)\):", r"\1:", title)
+    return title
 
 
 def get_version():
@@ -86,6 +96,8 @@ def semver_from_version():
     elif version.major != 0:
         return "major"
 
+TITLE = strip_scope(environ.get("TITLE", ""))
+BODY = environ.get("BODY")
 VERSION = get_version()
 
 if VERSION:
