@@ -63,7 +63,7 @@ Using below prefixes (eg. `fix: ...`) will automate the versioning and labelling
   - Pushed or merged commits without a proper title/commit message (Conventional Commit spec) will get no release.  
   - Translations are supposed to be prefixed as `fix` or `feat` to get a stable release.  
   - General rule: PRs/commits are _dev only_, other branches will be protected.
-  - PRs/commits that directly address issues with a **release** need a prefix/scope `fix(release):`/`release(<scope>):`. _Those_ will be part of the patch/minor/major release.
+  - PRs/commits that directly address issues with a **release** need a prefix/scope `release(<scope>):`. _Those_ will be part of the patch/minor/major release.
   - remember: `ci`/`style`/`test`/`docs` commits don't get a release.
   - The version of the `testing` branch is to be held steady.
   - A fix for later releases has to be commited as usual with `fix: ...`. Those PRs get a warning label "test ongoing". Usually it`s best to include them into the ongoing release/test.
