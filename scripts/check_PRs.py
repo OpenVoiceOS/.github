@@ -4,7 +4,8 @@ import json
 import re
 from typing import List, Optional
 
-from github import Github, PullRequest
+from github import Github
+from github.Repository import Repository
 import pccc
 
 
@@ -106,6 +107,17 @@ def check_cc_labels(desc: str) -> List[str]:
     return list(labels)
 
 
+def ensure_label_exists(repo: Repository, labels: List[str], color: str = 'ffffff'):
+    for label_name in labels:
+        if not any(label.name == label_name for label in repo.get_labels()):
+            repo.create_label(label_name, color)
+
+    # switch the strings to label objects
+    for label in repo.get_labels():
+        if label.name in labels:
+            labels[labels.index(label.name)] = label
+
+
 git = Github(TOKEN).get_repo(REPOSITORY)
 open_pulls = git.get_pulls(state='open')
 cc_missing = False
@@ -116,6 +128,7 @@ for pr in open_pulls:
         continue
     pr_description = f"{pr.title}\n{pr.body}"
     labels = check_cc_labels(pr_description)
+    ensure_label_exists(git, labels)
     pr.set_labels(*labels)
 
     # clear the test flag if the PR adresses a release or doesn't get a release at all.
