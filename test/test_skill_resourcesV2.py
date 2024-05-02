@@ -8,7 +8,8 @@ import unittest
 import yaml
 from mock import Mock, patch
 
-from ovos_core.intent_services import PadatiousMatcher, IntentService
+from ovos_core.intent_services import IntentService
+from ovos_core.intent_services.padatious_service import PadatiousMatcher
 from ovos_bus_client import Message
 from ovos_bus_client.session import Session, SessionManager
 from ovos_config.config import update_mycroft_config, Configuration
