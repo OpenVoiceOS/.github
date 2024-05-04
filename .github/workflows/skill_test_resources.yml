@@ -52,7 +52,7 @@ jobs:
       - name: Checkout Scripts Repo
         uses: actions/checkout@v4
         with:
-          repository: builderjer/.github
+          repository: OpenVoiceOS/.github
           ref: ${{inputs.action_branch}}
           path: action/github/
       - name: Set up python ${{ matrix.python-version }}
