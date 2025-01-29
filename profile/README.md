@@ -1,4 +1,4 @@
-![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true =128x128)<br>
+![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true|width=128)<br>
 <center>OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.</center>
 <br><hr>
 # Introduction
