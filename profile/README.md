@@ -1,39 +1,60 @@
-# We need your help
-With MycroftAI reduced to a skeleton crew, and the transfer of most development operations to Neon, we've decided to become a nonprofit foundation under Dutch law. OpenVoiceOS will be registered as **the OVOS Foundation** (Dutch: "Stichting OVOS", a nonprofit foundation.) The Foundation will support the OVOS community in legal and financial matters by securing donations of cash, hardware, and other relevant aid. These donations will be used to facilitate software development, promotion, and support.
-
-To establish the Foundation and equip it with a positive balance for ongoing expenses, we have been running a GoFundMe campaign:  
-https://www.gofundme.com/f/openvoiceos
-
-Sharing is caring and is very much appreciated. Please help us spread the word.
+![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true)<br>
+OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.
 <br><hr>
-# OpenVoiceOS
-OpenVoiceOS is a free and open-source personal assistant and smart speaker that offers a powerful and flexible alternative to proprietary solutions like Amazon Echo and Google Home. At the same time, it is also an open-source virtual assistant platform that enables developers and organizations to create custom voice-controlled applications. With its cutting-edge technology and user-friendly design, OpenVoiceOS is revolutionizing the way we interact with technology.
+# Introduction
+OpenVoiceOS provides an alternative to proprietary voice assistant platforms such as platforms offered by major companies like Amazon, Google, and Apple. The voice commands given to these assistants are often sent and stored in the cloud. This data can include personal and sensitive information that users might not want to be stored long-term or accessible to third parties. The collected data can be used to create detailed profiles of users' habits, preferences, and routines. This information can be used for targeted advertising or other commercial purposes, hence the real reason in our oppinion for these devices to be on the market. Voice assistants can be triggered accidentally by sounds similar to the wake word, leading to unintended recording of private conversations. There have been instances where human reviewers listen to voice recordings to improve the service, raising concerns about who has access to these recordings and how they are used.
 
-The platform provides a comprehensive suite of features that makes it easy to deploy voice-based applications for a wide range of use cases, including home automation, entertainment, education, and more. With natural language processing, multi-device compatibility, a customizable UI, robust APIs, and a focus on privacy and security, OpenVoiceOS delivers a highly responsive and accurate experience for users.
+These privacy issues highlight the need for a more transparent, user-controlled, and privacy-respecting alternative. The OpenVoiceOS project aims to provide an open-source, privacy-focused, and community-driven voice assistant framework and operating system. 
 
-In addition to its voice capabilities, OpenVoiceOS also features a touch-screen GUI made using QT and the KDE frameworks, providing an intuitive and user-friendly interface. And with its open-source nature, anyone with technical skills can contribute to the platform and help shape its future.
+Here are some key aspects of the OpenVoiceOS project:
+- **Control and Ownership:** OpenVoiceOS, being open-source, allows users full access to the source code. This transparency lets users and developers inspect, understand, modify, and control every aspect of the voice assistant.
+- **Privacy and Data Security:** OpenVoiceOS can be configured to process data locally on the user's device or the user’s local network, minimizing the need to send sensitive information over the internet and enhancing privacy.
+- **Innovation and Community Contributions:** OpenVoiceOS benefits from contributions from a global community of developers. This collective effort can lead to faster innovation features including third party innovative solutions and rapid problem- and bug solving.
 
-## Why OpenVoiceOS
-OpenVoiceOS is the perfect choice for anyone who wants a personal assistant and smart speaker that gives them complete control over their data and the ability to customize their experience. Here are some of the key features that set OpenVoiceOS apart from other smart speakers on the market:
+# Donating & Sponsoring
+With your help by sponsoring the OpenVoiceOS project, we can provide the following;
 
-*Multi-device compatibility:* OpenVoiceOS can be integrated with a wide range of devices, including smart speakers, smartphones, laptops and televisions making it easy for you to access and control your virtual assistant no matter where you are.
+- **Funding and Resources:** Providing financial support and resources for developers and projects that align with our mission.
+- **Community Engagement:** Facilitating collaboration and communication within the OpenVoiceOS community through forums, events, and online platforms.
+- **Education and Outreach:** Promoting awareness and understanding of the benefits of open-source voice assistant technology.
+- **Partnerships:** Building relationships with other organizations and stakeholders to advance the adoption of OpenVoiceOS.
 
-*Customizable UI:* With its easy-to-use GUI interface, OpenVoiceOS allows developers to create custom interfaces that match their specific brand and style. Whether you’re a business looking to integrate voice control into your product offerings, or a home user who wants a unique interface that matches your personal style, OpenVoiceOS has you covered.
+If you'd like to contribute, there are several ways you can do so:
 
-*Robust & Modular:* OpenVoiceOS leverages the power of skills and plugins to create a robust and modular virtual assistant platform, offering unparalleled customization and extension capabilities.
+| [![PayPal](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/paypalme/openvoiceos)                | [![Patreon](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/c/openvoiceos)                                              |
+|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Donate via PayPal for a one-time contribution or set up a recurring donation. This option provides the flexibility to choose the amount you want to give.           | Support us on Patreon and gain access to exclusive content, updates, and rewards based on your subscription tier. Patreon allows for monthly recurring donations, perfect for ongoing support. |
+| [![LiberaPay](https://img.shields.io/badge/Liberapay-F6C915?style=for-the-badge&logo=liberapay&logoColor=black)](https://liberapay.com/OpenVoiceOS-Foundation)      | [![Github-sponsors](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#EA4AAA)](https://github.com/sponsors/OpenVoiceOS/)                         |
+| Liberapay is a platform for recurring donations with no fees for the donor. You can set up a weekly, monthly, or yearly donation to support our continuous efforts. | If you're active on GitHub, you can sponsor OpenVoiceOS directly through GitHub Sponsors. Choose a sponsorship tier that fits your budget and support us directly on the platform.             |
 
-*Fully Offline:* OpenVoiceOS can run without the use of any online services, so you don’t have to rely on anyone keeping their servers up. The default speech-to-text (STT) engine currently requires an internet connection, though some self-hosted, offline options are available. 
+# Getting Involved
+Check out our [documentation](https://openvoiceos.github.io/community-docs/) to learn more about OpenVoiceOS.
 
-*Privacy and security:* OpenVoiceOS is designed with privacy and security in mind. Whether you’re concerned about the security of your personal information or the privacy of your voice commands, OpenVoiceOS provides peace of mind.
-
-Whether you prefer voice commands or a more traditional touch interface, OpenVoiceOS has you covered, and the option to run the platform fully offline gives you complete control over your data and ensures that your information is never shared with third parties. With its powerful and flexible features, OpenVoiceOS is the ideal choice for anyone who wants a voice-controlled virtual assistant and smart speaker that offers complete control and customization. Whether you’re a software developer, data scientist, or just someone with a passion for technology, be sure to check out OpenVoiceOS today!
-
-## Getting Involved
-Check out our [documentation](https://openvoiceos.github.io/community-docs/) to learn more about OpenVoiceOS [here](https://openvoiceos.github.io/community-docs/)
-
-You can have a personal chat with any of the team members or other OpenVoiceOS users at our active Matrix channels or leave a message at our discussionboard on github.;
+You can have a personal chat with any of the team members or other OpenVoiceOS users at our active Matrix channels or leave a message at our discussionboard on github.
 * [Discussion Board](https://github.com/OpenVoiceOS/OpenVoiceOS/discussions)
-* [Forum thread @ Mycroft A.I.](https://community.mycroft.ai/t/openvoiceos-a-bare-minimal-production-type-of-os-based-on-buildroot/4708)
+* [Open Conversational AY Community](https://community.openconversational.ai/)
 * [Matrix Chat rooms](https://matrix.to/#/!XFpdtmgyCoPDxOMPpH:matrix.org?via=matrix.org)
+
+# Share OpenVoiceOS with the World
+Whether you're a developer, tech enthusiast, vlogger, blogger or just someone passionate about digital freedom, OVOS offers a powerful platform for voice-controlled technology that respects your privacy and puts you in control and the world needs to know!
+
+##How You Can Spread the Word
+
+1. Talk About It
+Start by sharing your excitement for OpenVoiceOS with friends, family, and colleagues. Discuss the benefits of an open-source, privacy-first voice platform and how it empowers users to take control of their technology.
+
+2. Share on Social Media
+Use your social media platforms to share updates, features, and personal experiences with OVOS. Don’t forget to tag us and use the hashtag #OpenVoiceOS to connect with others who are passionate about the project.
+
+3. Write a Blog Post or Article
+If you have a blog or write for a tech publication, consider writing a post about your experiences with OVOS. Share tips, tutorials, or insights on why OVOS is a game-changer in the voice technology space.
+
+4. Create Content
+Videos, podcasts, and live streams are great ways to engage your audience. Whether it’s a tutorial, a review, or a deep dive into OVOS features, your content can help others discover the project and understand its potential.
+
+Why Your Voice Matters.
+Sharing OpenVoiceOS with the world not only helps grow the community but also promotes the values of open-source software and privacy. By talking about OVOS, you’re advocating for a future where users have more control over their technology and data.
+
+Let’s build something amazing together. Share OpenVoiceOS today!
 
 Visit [openvoiceos.org](https://openvoiceos.org) to learn more!
