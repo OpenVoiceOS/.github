@@ -1,4 +1,6 @@
-![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true)<br>
+<p align="center">
+  <img src="https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true" />
+</p>
 OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.
 <br><hr>
 # Introduction
@@ -38,7 +40,7 @@ You can have a personal chat with any of the team members or other OpenVoiceOS u
 # Share OpenVoiceOS with the World
 Whether you're a developer, tech enthusiast, vlogger, blogger or just someone passionate about digital freedom, OVOS offers a powerful platform for voice-controlled technology that respects your privacy and puts you in control and the world needs to know!
 
-##How You Can Spread the Word
+## How You Can Spread the Word
 
 1. Talk About It
 Start by sharing your excitement for OpenVoiceOS with friends, family, and colleagues. Discuss the benefits of an open-source, privacy-first voice platform and how it empowers users to take control of their technology.
