@@ -1,5 +1,5 @@
-![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true|width=128)<br>
-<center>OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.</center>
+![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true)<br>
+OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.
 <br><hr>
 # Introduction
 OpenVoiceOS provides an alternative to proprietary voice assistant platforms such as platforms offered by major companies like Amazon, Google, and Apple. The voice commands given to these assistants are often sent and stored in the cloud. This data can include personal and sensitive information that users might not want to be stored long-term or accessible to third parties. The collected data can be used to create detailed profiles of users' habits, preferences, and routines. This information can be used for targeted advertising or other commercial purposes, hence the real reason in our oppinion for these devices to be on the market. Voice assistants can be triggered accidentally by sounds similar to the wake word, leading to unintended recording of private conversations. There have been instances where human reviewers listen to voice recordings to improve the service, raising concerns about who has access to these recordings and how they are used.
