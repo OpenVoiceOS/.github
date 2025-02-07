@@ -1,0 +1,11 @@
+gcc
+python3-dev
+swig
+libssl-dev
+libfann-dev
+portaudio19-dev
+libpulse-dev
+libicu-dev
+pkg-config
+libenchant-2-2
+gh

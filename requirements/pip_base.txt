@@ -1,0 +1,4 @@
+PyGithub
+semver
+pccc
+git-cliff
