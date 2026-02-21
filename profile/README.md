@@ -12,10 +12,11 @@
   <a href="https://matrix.to/#/!XFpdtmgyCoPDxOMPpH:matrix.org?via=matrix.org"><img src="https://img.shields.io/static/v1?message=Matrix&logo=matrix&label=&color=003B00&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="youtube logo"  /></a>
 </div>
 
----
-OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.
----
+#
 
+OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.
+
+###
 
 
 
