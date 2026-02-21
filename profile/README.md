@@ -1,6 +1,21 @@
-![OpenVoiceOS](https://github.com/OpenVoiceOS/ovos_assets/blob/master/Logo/ovos-logo-512.png?raw=true)<br>
+<div align="center">
+  <img height="150" src="https://github.com/OpenVoiceOS/ovos_assets/raw/master/Logo/ovos-logo-512.png?raw=true"  />
+</div>
+
+
+###
+
+<div align="center">
+  <a href="https://www.linkedin.com/company/openvoiceos/"><img src="https://img.shields.io/static/v1?message=LinkedIn&logo=linkedin&label=&color=0077B5&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="linkedin logo"  /></a>
+  <a href="https://www.youtube.com/@openvoiceos"><img src="https://img.shields.io/static/v1?message=Youtube&logo=youtube&label=&color=FF0000&logoColor=white&labelColor=&style=for-the-badge" height="25" alt="youtube logo"  /></a>
+  <a href="https://www.reddit.com/r/OpenVoiceOS/"><img src="https://img.shields.io/badge/Reddit-%23FF4500.svg?style=for-the-badge&logo=Reddit&logoColor=white" height="25" alt="youtube logo"  /></a>
+</div>
+
+###
+
 OpenVoiceOS is a community-driven, open-source, privacy-respecting voice assistant framework and operating system that puts users in control of their data.
-<br><hr>
+
+
 # Introduction
 OpenVoiceOS provides an alternative to proprietary voice assistant platforms such as platforms offered by major companies like Amazon, Google, and Apple. The voice commands given to these assistants are often sent and stored in the cloud. This data can include personal and sensitive information that users might not want to be stored long-term or accessible to third parties. The collected data can be used to create detailed profiles of users' habits, preferences, and routines. This information can be used for targeted advertising or other commercial purposes, hence the real reason in our oppinion for these devices to be on the market. Voice assistants can be triggered accidentally by sounds similar to the wake word, leading to unintended recording of private conversations. There have been instances where human reviewers listen to voice recordings to improve the service, raising concerns about who has access to these recordings and how they are used.
 
