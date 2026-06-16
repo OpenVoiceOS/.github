@@ -1,0 +1,2 @@
+ovos-translate-plugin-deepl
+ovos-utils

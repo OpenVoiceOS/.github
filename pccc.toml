@@ -1,0 +1,58 @@
+# configuration keys for the Python Conventional Commit Checker
+[pccc]
+
+header_length = 50
+body_length = 72
+wrap = true
+force_wrap = true
+spell_check = false
+repair = false
+ignore_generated_commits = true
+
+generated_commits = [
+  '''^\(tag:\s+v\d+\.\d+\.\d\)\s+\d+\.\d+\.\d+$''',
+  '''^Merge branch 'master'.*$''',
+]
+
+# chore -> alpha
+# fix -> patch
+# feat -> minor
+# in combination with "!" ("feat!:") or BREAKING CHANGE (in body/message) -> major
+
+types = [
+  "ci",
+  "docs",
+  "style",
+  "test",
+  "release",
+  "chore",
+  "build",
+  "feat",
+  "fix",
+  "perf",
+  "refactor",
+  "revert"
+]
+
+scopes = [
+  "config",
+  "parser",
+  "tooling",
+  "cli",
+  "gui",
+  "core",
+  "audio",
+  "tts",
+  "stt",
+  "nlp",
+  "plugins",
+  "localisation",
+  "resources",
+  "release",
+  "testing"
+]
+
+footers = [
+  "github-closes",
+  "signed-off-by",
+]
