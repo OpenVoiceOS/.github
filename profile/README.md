@@ -32,7 +32,7 @@ If you'd like to contribute, there are several ways you can do so:
 | Liberapay is a platform for recurring donations with no fees for the donor. You can set up a weekly, monthly, or yearly donation to support our continuous efforts. | If you're active on GitHub, you can sponsor OpenVoiceOS directly through GitHub Sponsors. Choose a sponsorship tier that fits your budget and support us directly on the platform.             |
 
 # Getting Involved
-Check out our [documentation](https://openvoiceos.github.io/community-docs/) to learn more about OpenVoiceOS.
+Check out our [documentation](https://openvoiceos.github.io/ovos-technical-manual/) to learn more about OpenVoiceOS.
 
 You can have a personal chat with any of the team members or other OpenVoiceOS users at our active Matrix channels or leave a message at our discussionboard on github.
 * [Discussion Board](https://github.com/OpenVoiceOS/OpenVoiceOS/discussions)
